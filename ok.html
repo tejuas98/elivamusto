@@ -785,7 +785,7 @@ async function fetchMeta(url) {
           setTimeout(() => el.classList.remove('flash'), 800);
         }
         input.value = '';
-        return;
+        throw new Error('you already listened to this');
       }
 
       items.push(newItem);
