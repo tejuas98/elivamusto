@@ -1005,7 +1005,7 @@ gallery.addEventListener('dragend', (e) => {
 document.getElementById('gallery').addEventListener('wheel', (e) => {
   if (e.deltaY !== 0 && !e.shiftKey) {
     e.preventDefault();
-    document.getElementById('gallery').scrollBy({
+    document.querySelector('.shelf-wrapper').scrollBy({
       left: e.deltaY * 2,
       behavior: 'auto'
     });
