@@ -664,8 +664,8 @@ const STORAGE_KEYS = {
       card.className = 'poster-slice';
       card.style.animationDelay = `${i * 0.04}s`;
 
-      const thumbUrl = t.thumbnail ? t.thumbnail : thumb(t.videoId);
-      const fallbackUrl = t.thumbnail ? t.thumbnail : `https://img.youtube.com/vi/${t.videoId}/hqdefault.jpg`;
+      const thumbUrl = t.thumbnail || (t.videoId ? thumb(t.videoId) : '');
+      const fallbackUrl = t.videoId ? `https://img.youtube.com/vi/${t.videoId}/hqdefault.jpg` : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMwMDAiLz48L3N2Zz4=';
 
       card.innerHTML = `
         <img class="poster-img" id="img-${t.id}-${t.addedAt}" src="${thumbUrl}" alt="${t.title}" onerror="this.onerror=null; this.src='${fallbackUrl}'"/>
@@ -770,6 +770,7 @@ async function fetchMeta(url) {
           title: data.title,
           channel: data.author_name,
           url: query,
+          thumbnail: data.thumbnail_url,
           addedAt: Date.now()
         };
       } else if (activeCategory === 'movies') {
@@ -778,12 +779,19 @@ async function fetchMeta(url) {
         if (!data.results || data.results.length === 0) throw new Error('Movie not found');
         
         const movie = data.results[0];
+        
+        // Grab the largest possible artwork by modifying the URL
+        let bigArt = movie.artworkUrl100;
+        if (bigArt) {
+          bigArt = bigArt.replace(/100x100bb/, '1000x1000bb');
+        }
+
         newItem = {
           id: movie.trackId.toString(),
           title: movie.trackName,
           channel: movie.directorName || 'Unknown Director',
           url: movie.trackViewUrl,
-          thumbnail: movie.artworkUrl100.replace('100x100bb.jpg', '600x600bb.jpg'),
+          thumbnail: bigArt,
           addedAt: Date.now()
         };
       } else if (activeCategory === 'anime') {
