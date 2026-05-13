@@ -248,7 +248,13 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
+    overflow-x: auto;
+    overflow-y: hidden;
   }
+
+  .shelf-wrapper::-webkit-scrollbar { height: 12px; }
+  .shelf-wrapper::-webkit-scrollbar-track { background: var(--bg3); border: 2px solid #000; border-left: none; border-right: none; }
+  .shelf-wrapper::-webkit-scrollbar-thumb { background: var(--amber); border: 2px solid #000; }
 
   .gallery {
     display: flex;
@@ -256,15 +262,10 @@
     padding: 10px 24px 20px;
     flex: 1;
     height: auto;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow: visible;
+    min-width: max-content;
     align-items: stretch;
-    scroll-behavior: smooth;
   }
-
-  .gallery::-webkit-scrollbar { height: 12px; }
-  .gallery::-webkit-scrollbar-track { background: var(--bg3); border: 2px solid #000; }
-  .gallery::-webkit-scrollbar-thumb { background: var(--amber); border: 2px solid #000; }
 
   .poster-slice {
     position: relative;
@@ -275,6 +276,7 @@
     transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s, transform 0.3s;
     flex-shrink: 0;
     border: 3px solid #000;
+    border-bottom: 4px solid var(--amber);
     box-shadow: 4px 4px 0 #000;
     animation: fadeIn 0.4s ease both;
   }
@@ -452,20 +454,35 @@
   .empty-state {
     grid-column: 1 / -1;
     text-align: center;
-    padding: 80px 20px;
+    padding: 60px 40px;
+    background: #000;
+    border: 4px solid #000;
+    box-shadow: 8px 8px 0 var(--amber);
+    margin: 20px auto;
+    max-width: 400px;
   }
 
   .empty-icon {
     font-size: 48px;
     margin-bottom: 20px;
-    opacity: 0.2;
+    color: #fff;
   }
 
   .empty-state p {
     font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
     line-height: 1.7;
+  }
+
+  @keyframes amberFlash {
+    0% { background: #000; border-color: #000; }
+    50% { background: var(--amber); border-color: #000; }
+    100% { background: #000; border-color: #000; }
+  }
+  .flash {
+    animation: amberFlash 0.8s ease;
   }
 
   .app-footer {
@@ -508,13 +525,16 @@
     <div class="header-center">
       <div class="category-tabs">
         <button class="tab-btn active" data-category="music">MUSIC</button>
-        <button class="tab-btn" data-category="movies">MOVIES</button>
-        <button class="tab-btn" data-category="anime">ANIME</button>
+        <button class="tab-btn" data-category="movies" style="border-style: dashed; color: var(--text-muted);">MOVIES <span style="font-size:10px; background:#000; color:#fff; padding:2px 4px; margin-left: 4px;">soon</span></button>
+        <button class="tab-btn" data-category="anime" style="border-style: dashed; color: var(--text-muted);">ANIME <span style="font-size:10px; background:#000; color:#fff; padding:2px 4px; margin-left: 4px;">soon</span></button>
       </div>
     </div>
     
     <div class="header-right">
-      <input type="text" id="searchInput" class="compact-search" placeholder="search collection..." autocomplete="off">
+      <div style="position: relative; display: flex; align-items: center;">
+        <input type="text" id="searchInput" class="compact-search" placeholder="search collection..." autocomplete="off">
+        <button id="clearSearchBtn" style="position: absolute; right: 8px; background: none; border: none; font-size: 16px; cursor: pointer; display: none; font-weight: bold;">✕</button>
+      </div>
       <div class="count-badge" id="countBadge">0 tracks</div>
     </div>
   </header>
@@ -636,6 +656,8 @@ function fmtDate(ts) {
       const card = document.createElement('div');
       card.className = 'poster-slice';
       card.style.animationDelay = `${i * 0.04}s`;
+      card.draggable = true;
+      card.dataset.id = t.id;
 
       const thumbUrl = t.thumbnail || (t.videoId ? thumb(t.videoId) : '');
       const fallbackUrl = t.videoId ? `https://img.youtube.com/vi/${t.videoId}/hqdefault.jpg` : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMwMDAiLz48L3N2Zz4=';
@@ -751,8 +773,15 @@ async function fetchMeta(url) {
       }
 
       const items = load();
-      if (items.some(x => x.id === newItem.id)) {
-        throw new Error('Already added to your diary');
+      const existingItem = items.find(x => x.id === newItem.id);
+      if (existingItem) {
+        const el = document.getElementById('gallery').querySelector(`[data-id="${existingItem.id}"]`);
+        if (el) {
+          el.classList.add('flash');
+          setTimeout(() => el.classList.remove('flash'), 800);
+        }
+        input.value = '';
+        return;
       }
 
       items.push(newItem);
@@ -803,8 +832,57 @@ async function fetchMeta(url) {
     });
   });
 
-document.getElementById('searchInput').addEventListener('input', (e) => {
+const searchInput = document.getElementById('searchInput');
+const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+searchInput.addEventListener('input', (e) => {
+  clearSearchBtn.style.display = e.target.value ? 'block' : 'none';
   renderAll(e.target.value);
+});
+
+clearSearchBtn.addEventListener('click', () => {
+  searchInput.value = '';
+  clearSearchBtn.style.display = 'none';
+  renderAll('');
+});
+
+// Drag and Drop Engine
+let draggedId = null;
+
+gallery.addEventListener('dragstart', (e) => {
+  const card = e.target.closest('.poster-slice');
+  if (!card) return;
+  draggedId = card.dataset.id;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => card.style.opacity = '0.5', 0);
+});
+
+gallery.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+});
+
+gallery.addEventListener('drop', (e) => {
+  e.preventDefault();
+  const targetCard = e.target.closest('.poster-slice');
+  if (!targetCard || !draggedId || targetCard.dataset.id === draggedId) return;
+
+  const items = load();
+  const fromIdx = items.findIndex(x => x.id === draggedId);
+  const toIdx = items.findIndex(x => x.id === targetCard.dataset.id);
+  
+  if (fromIdx !== -1 && toIdx !== -1) {
+    const [movedItem] = items.splice(fromIdx, 1);
+    items.splice(toIdx, 0, movedItem);
+    save(items);
+    renderAll(searchInput.value);
+  }
+});
+
+gallery.addEventListener('dragend', (e) => {
+  const card = e.target.closest('.poster-slice');
+  if (card) card.style.opacity = '1';
+  draggedId = null;
 });
 
 document.getElementById('gallery').addEventListener('wheel', (e) => {
