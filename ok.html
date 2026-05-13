@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>turiqs - media diary</title>
-<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Zersap - media diary</title>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Rubik+Mono+One&family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -104,7 +104,7 @@
   }
 
   h1.anime-title {
-    font-family: 'Dela Gothic One', cursive;
+    font-family: 'Rubik Mono One', sans-serif;
     font-size: clamp(32px, 6vw, 56px);
     color: #ffffff;
     -webkit-text-stroke: 2px #000;
@@ -451,6 +451,46 @@
     box-shadow: 6px 6px 0 #000;
   }
 
+  .pin-btn {
+    position: absolute;
+    top: -4px; right: 33px;
+    width: 40px; height: 40px;
+    background: #fff;
+    border: 3px solid #000;
+    border-right: none;
+    color: #000;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+    line-height: 1;
+    z-index: 20;
+    box-shadow: 4px 4px 0 #000;
+  }
+
+  .poster-slice:hover .pin-btn { opacity: 1; }
+  .pin-btn:hover { 
+    background: var(--amber); 
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 #000;
+  }
+  .pin-btn.pinned { color: var(--amber); }
+  .pin-btn.pinned:hover { color: #fff; }
+
+  .spine-heart {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--amber);
+    font-size: 16px;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    text-shadow: 2px 2px 0 #000;
+  }
+  .poster-slice:hover .spine-heart { opacity: 0; }
+
   .empty-state {
     grid-column: 1 / -1;
     text-align: center;
@@ -519,7 +559,7 @@
 <div class="wrap">
   <header class="app-header">
     <div class="header-left">
-      <h1 class="anime-title">turiqs</h1>
+      <h1 class="anime-title">Zersap</h1>
     </div>
     
     <div class="header-center">
@@ -652,7 +692,11 @@ function fmtDate(ts) {
       return;
     }
 
-    filteredItems.slice().reverse().forEach((t, i) => {
+    const unpinned = filteredItems.filter(t => !t.isPinned);
+    const pinned = filteredItems.filter(t => t.isPinned);
+    const sortedItems = [...unpinned, ...pinned];
+
+    sortedItems.slice().reverse().forEach((t, i) => {
       const card = document.createElement('div');
       card.className = 'poster-slice';
       card.style.animationDelay = `${i * 0.04}s`;
@@ -663,6 +707,7 @@ function fmtDate(ts) {
 
       card.innerHTML = `
         <img class="poster-img" id="img-${t.id}-${t.addedAt}" src="${thumbUrl}" alt="${t.title}" onerror="this.onerror=null; this.src='${fallbackUrl}'"/>
+        ${t.isPinned ? '<div class="spine-heart">♥</div>' : ''}
         
         <div class="vertical-title">${escHtml(cleanTitle(t.title))}</div>
       
@@ -682,12 +727,25 @@ function fmtDate(ts) {
         </div>
       </a>
       
+      <button class="pin-btn ${t.isPinned ? 'pinned' : ''}" data-id="${t.id}" title="${t.isPinned ? 'Unpin' : 'Pin'}">${t.isPinned ? '♥' : '♡'}</button>
       <button class="delete-btn" data-id="${t.id}" title="Remove">✕</button>
     `;
 
     const img = card.querySelector('img');
     if(img.complete) img.classList.add('loaded');
     else img.onload = () => img.classList.add('loaded');
+
+      card.querySelector('.pin-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const allItems = load();
+        const item = allItems.find(x => x.id === t.id);
+        if (item) {
+          item.isPinned = !item.isPinned;
+          save(allItems);
+          renderAll(document.getElementById('searchInput').value);
+        }
+      });
 
       card.querySelector('.delete-btn').addEventListener('click', (e) => {
         e.preventDefault();
