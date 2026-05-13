@@ -855,6 +855,8 @@ async function fetchMeta(url) {
 
 document.getElementById('searchInput').addEventListener('input', (e) => {
   renderAll(e.target.value);
+});
+
 document.getElementById('gallery').addEventListener('wheel', (e) => {
   if (e.deltaY !== 0 && !e.shiftKey) {
     e.preventDefault();
