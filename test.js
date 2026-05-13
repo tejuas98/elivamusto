@@ -268,15 +268,6 @@ async function fetchMeta(url) {
     setTimeout(addTrack, 150);
   });
 
-  let isColorMode = localStorage.getItem('colorMode') === 'true';
-  if (isColorMode) document.body.classList.add('color-mode');
-
-  document.getElementById('colorToggleBtn').addEventListener('click', () => {
-    isColorMode = !isColorMode;
-    localStorage.setItem('colorMode', isColorMode);
-    document.body.classList.toggle('color-mode', isColorMode);
-  });
-
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -301,6 +292,24 @@ async function fetchMeta(url) {
 
 document.getElementById('searchInput').addEventListener('input', (e) => {
   renderAll(e.target.value);
+});
+
+// Parallax Engine
+document.addEventListener('mousemove', (e) => {
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2;
+  const dx = (e.clientX - cx) / cx;
+  const dy = (e.clientY - cy) / cy;
+
+  document.querySelectorAll('.layer-bg').forEach(el => {
+    el.style.transform = `translate(${dx * -10}px, ${dy * -10}px) ${el.id === 'cloud2' ? 'scaleX(-1)' : ''}`;
+  });
+  document.querySelectorAll('.layer-mid').forEach(el => {
+    el.style.transform = `translate(${dx * -30}px, ${dy * -30}px)`;
+  });
+  document.querySelectorAll('.layer-fg').forEach(el => {
+    el.style.transform = `translate(${dx * -60}px, ${dy * -60}px) rotate(-5deg)`;
+  });
 });
 
 document.getElementById('gallery').addEventListener('wheel', (e) => {

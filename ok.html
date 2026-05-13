@@ -42,6 +42,26 @@
     mix-blend-mode: multiply;
   }
 
+  .diorama-stage {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .diorama-asset {
+    position: absolute;
+    filter: drop-shadow(12px 12px 0px rgba(0,0,0,0.15));
+    will-change: transform;
+    transition: transform 0.1s ease-out;
+  }
+
+  #cloud1 { top: 15%; left: 15%; width: 250px; opacity: 0.7; }
+  #cloud2 { top: 10%; right: 20%; width: 180px; opacity: 0.7; transform: scaleX(-1); }
+  #shrine { bottom: 10%; left: 10%; width: 450px; z-index: 1; }
+  #dragon { top: 20%; right: 5%; width: 550px; z-index: 2; transform: rotate(-5deg); }
+
   .wrap { 
     width: 100%;
     padding: 0 40px; 
@@ -497,6 +517,13 @@
 <body>
 <div class="noise"></div>
 
+<div class="diorama-stage">
+  <img src="assets/cloud.png" class="diorama-asset layer-bg" id="cloud1" alt="Cloud">
+  <img src="assets/cloud.png" class="diorama-asset layer-bg" id="cloud2" alt="Cloud">
+  <img src="assets/building.png" class="diorama-asset layer-mid" id="shrine" alt="Shrine">
+  <img src="assets/dragon.png" class="diorama-asset layer-fg" id="dragon" alt="Dragon">
+</div>
+
 <div class="wrap">
   <header class="app-header">
     <div class="header-left">
@@ -836,6 +863,24 @@ async function fetchMeta(url) {
 
 document.getElementById('searchInput').addEventListener('input', (e) => {
   renderAll(e.target.value);
+});
+
+// Parallax Engine
+document.addEventListener('mousemove', (e) => {
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2;
+  const dx = (e.clientX - cx) / cx;
+  const dy = (e.clientY - cy) / cy;
+
+  document.querySelectorAll('.layer-bg').forEach(el => {
+    el.style.transform = `translate(${dx * -10}px, ${dy * -10}px) ${el.id === 'cloud2' ? 'scaleX(-1)' : ''}`;
+  });
+  document.querySelectorAll('.layer-mid').forEach(el => {
+    el.style.transform = `translate(${dx * -30}px, ${dy * -30}px)`;
+  });
+  document.querySelectorAll('.layer-fg').forEach(el => {
+    el.style.transform = `translate(${dx * -60}px, ${dy * -60}px) rotate(-5deg)`;
+  });
 });
 
 document.getElementById('gallery').addEventListener('wheel', (e) => {
