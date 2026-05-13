@@ -478,18 +478,17 @@
   .pin-btn.pinned { color: var(--amber); }
   .pin-btn.pinned:hover { color: #fff; }
 
-  .spine-heart {
+  .spine-pin {
     position: absolute;
     top: 10px;
     left: 50%;
     transform: translateX(-50%);
     color: var(--amber);
-    font-size: 16px;
     pointer-events: none;
     transition: opacity 0.3s;
-    text-shadow: 2px 2px 0 #000;
+    filter: drop-shadow(2px 2px 0px #000);
   }
-  .poster-slice:hover .spine-heart { opacity: 0; }
+  .poster-slice:hover .spine-pin { opacity: 0; }
 
   .empty-state {
     grid-column: 1 / -1;
@@ -705,9 +704,11 @@ function fmtDate(ts) {
       const thumbUrl = t.thumbnail || (t.videoId ? thumb(t.videoId) : '');
       const fallbackUrl = t.videoId ? `https://img.youtube.com/vi/${t.videoId}/hqdefault.jpg` : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMwMDAiLz48L3N2Zz4=';
 
+      const pinSvg = `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z" /></svg>`;
+
       card.innerHTML = `
         <img class="poster-img" id="img-${t.id}-${t.addedAt}" src="${thumbUrl}" alt="${t.title}" onerror="this.onerror=null; this.src='${fallbackUrl}'"/>
-        ${t.isPinned ? '<div class="spine-heart">♥</div>' : ''}
+        ${t.isPinned ? `<div class="spine-pin">${pinSvg}</div>` : ''}
         
         <div class="vertical-title">${escHtml(cleanTitle(t.title))}</div>
       
@@ -727,7 +728,7 @@ function fmtDate(ts) {
         </div>
       </a>
       
-      <button class="pin-btn ${t.isPinned ? 'pinned' : ''}" data-id="${t.id}" title="${t.isPinned ? 'Unpin' : 'Pin'}">${t.isPinned ? '♥' : '♡'}</button>
+      <button class="pin-btn ${t.isPinned ? 'pinned' : ''}" data-id="${t.id}" title="${t.isPinned ? 'Unpin' : 'Pin'}">${pinSvg}</button>
       <button class="delete-btn" data-id="${t.id}" title="Remove">✕</button>
     `;
 
