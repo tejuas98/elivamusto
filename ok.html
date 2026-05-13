@@ -102,6 +102,22 @@
     cursor: pointer;
     box-shadow: 4px 4px 0 var(--border);
     transition: transform 0.1s, box-shadow 0.1s, background 0.2s;
+    min-width: 100px;
+    text-align: center;
+    position: relative;
+    overflow: visible;
+  }
+  .tab-soon::after {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    content: 'SOON';
+    background: var(--border);
+    color: var(--bg2);
+    font-size: 8px;
+    padding: 2px 5px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.1em;
   }
   .tab-btn:hover {
     transform: translate(-2px, -2px);
@@ -120,20 +136,12 @@
     color: var(--bg2);
     -webkit-text-stroke: 2px var(--border);
     text-shadow: 
-      1px 1px 0 var(--border), 
-      2px 2px 0 var(--border), 
       3px 3px 0 var(--border), 
-      4px 4px 0 var(--border), 
-      5px 5px 0 var(--border), 
-      6px 6px 0 var(--border), 
-      7px 7px 0 var(--border), 
-      8px 8px 0 var(--border),
-      12px 12px 0 var(--amber);
+      6px 6px 0 var(--amber);
     line-height: 1;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     margin: 0;
-    transform: skewX(-8deg);
   }
 
   .count-badge {
@@ -576,8 +584,8 @@
     <div class="header-center">
       <div class="category-tabs">
         <button class="tab-btn active" data-category="music">MUSIC</button>
-        <button class="tab-btn" data-category="movies" style="border-style: dashed; color: var(--text-muted);">MOVIES <span style="font-size:10px; background:var(--border); color:var(--bg2); padding:2px 4px; margin-left: 4px;">soon</span></button>
-        <button class="tab-btn" data-category="anime" style="border-style: dashed; color: var(--text-muted);">ANIME <span style="font-size:10px; background:var(--border); color:var(--bg2); padding:2px 4px; margin-left: 4px;">soon</span></button>
+        <button class="tab-btn tab-soon" data-category="movies" style="border-style: dashed; color: var(--text-muted);">MOVIES</button>
+        <button class="tab-btn tab-soon" data-category="anime" style="border-style: dashed; color: var(--text-muted);">ANIME</button>
       </div>
     </div>
     
