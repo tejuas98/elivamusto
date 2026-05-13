@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>my music diary</title>
+<title>turiqs - media diary</title>
 <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -295,24 +295,16 @@
     height: 100%;
     object-fit: cover;
     object-position: center;
-    opacity: 0.6;
+    opacity: 0.8;
     transition: opacity 0.6s, transform 0.6s, filter 0.6s;
     pointer-events: none;
-    filter: grayscale(100%) contrast(120%);
+    filter: contrast(110%) saturate(120%);
   }
 
   .poster-slice:hover .poster-img {
     opacity: 1;
     transform: scale(1.02);
-    filter: grayscale(100%) contrast(110%);
-  }
-
-  body.color-mode .poster-img {
-    filter: grayscale(0%) contrast(110%) saturate(120%);
-    opacity: 0.8;
-  }
-  body.color-mode .poster-slice:hover .poster-img {
-    filter: grayscale(0%) contrast(120%) saturate(140%);
+    filter: contrast(120%) saturate(140%);
   }
 
   /* Vertical title shown when collapsed */
@@ -508,7 +500,7 @@
 <div class="wrap">
   <header class="app-header">
     <div class="header-left">
-      <h1 class="anime-title">elivamusto</h1>
+      <h1 class="anime-title">turiqs</h1>
     </div>
     
     <div class="header-center">
@@ -522,7 +514,6 @@
     <div class="header-right">
       <input type="text" id="searchInput" class="compact-search" placeholder="search collection..." autocomplete="off">
       <div class="count-badge" id="countBadge">0 tracks</div>
-      <button id="colorToggleBtn" class="tab-btn" style="padding: 6px 10px;" title="Toggle Color Mode">◐</button>
     </div>
   </header>
 
@@ -819,15 +810,6 @@ async function fetchMeta(url) {
 
   document.getElementById('urlInput').addEventListener('paste', () => {
     setTimeout(addTrack, 150);
-  });
-
-  let isColorMode = localStorage.getItem('colorMode') === 'true';
-  if (isColorMode) document.body.classList.add('color-mode');
-
-  document.getElementById('colorToggleBtn').addEventListener('click', () => {
-    isColorMode = !isColorMode;
-    localStorage.setItem('colorMode', isColorMode);
-    document.body.classList.toggle('color-mode', isColorMode);
   });
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
