@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>my music diary</title>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f4f1eb; /* Off-white / cream paper */
+    --bg2: #ffffff; 
+    --bg3: #e0ddd5;
+    --border: #000000;
+    --border-hover: #000000;
+    --amber: #ff6b35; /* Vibrant retro orange */
+    --amber-dim: rgba(255,107,53,0.15);
+    --amber-glow: rgba(255,107,53,0.1);
+    --text-primary: #0a0a0a;
+    --text-secondary: #4a4a4a;
+    --text-muted: #666666;
+    --red: #e63946;
+  }
+
+  html { background: var(--bg); color: var(--text-primary); font-family: 'DM Sans', sans-serif; }
+
+  body {
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg);
+    background-image: radial-gradient(#d4d0c5 2px, transparent 2px);
+    background-size: 16px 16px;
+  }
+
+  .noise {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 200px;
+    mix-blend-mode: multiply;
+  }
+
+  .wrap { 
+    width: 100%;
+    padding: 0 40px; 
+    position: relative; 
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 40px 0 0;
+    flex-shrink: 0;
+    margin-bottom: 20px;
+  }
+
+  .header-left, .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  h1.anime-title {
+    font-family: 'Dela Gothic One', cursive;
+    font-size: clamp(32px, 6vw, 56px);
+    color: #ffffff;
+    -webkit-text-stroke: 2px #000;
+    text-shadow: 
+      1px 1px 0 #000, 
+      2px 2px 0 #000, 
+      3px 3px 0 #000, 
+      4px 4px 0 #000, 
+      5px 5px 0 #000, 
+      6px 6px 0 #000, 
+      7px 7px 0 #000, 
+      8px 8px 0 #000,
+      12px 12px 0 var(--amber);
+    line-height: 1;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin: 0;
+    transform: skewX(-8deg);
+  }
+
+  .count-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: bold;
+    color: #fff;
+    background: #000;
+    border: 2px solid #000;
+    border-radius: 0;
+    padding: 6px 14px;
+    white-space: nowrap;
+    box-shadow: 3px 3px 0 var(--amber);
+    text-transform: uppercase;
+  }
+
+  /* Compact Input Row */
+  .compact-input {
+    background: #fff;
+    border: 3px solid #000;
+    padding: 4px 4px 4px 16px;
+    display: flex;
+    gap: 8px;
+    width: 260px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 4px 4px 0 #000;
+  }
+
+  .compact-input:focus-within {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--amber);
+  }
+
+  .compact-input .url-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--text-primary);
+    min-width: 0;
+  }
+  .compact-input .url-input::placeholder { color: var(--text-muted); font-weight: normal; }
+
+  .icon-btn {
+    background: var(--red);
+    color: #fff;
+    border: 2px solid #000;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 800;
+    cursor: pointer;
+    flex-shrink: 0;
+    line-height: 1;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 2px 2px 0 #000;
+  }
+
+  .icon-btn:hover { 
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 #000;
+  }
+  .icon-btn:active {
+    transform: translate(0, 0);
+    box-shadow: 0 0 0 #000;
+  }
+  .icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .error-msg {
+    margin-top: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--red);
+    display: none;
+  }
+  .error-msg.show { display: block; }
+
+  .loading-bar {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--amber), transparent);
+    border-radius: 2px;
+    margin-top: 10px;
+    animation: shimmer 1.2s infinite;
+    display: none;
+  }
+  .loading-bar.show { display: block; }
+  @keyframes shimmer { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
+
+  /* Compact Search */
+  .compact-search {
+    background: #fff;
+    border: 3px solid #000;
+    padding: 8px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--text-primary);
+    width: 200px;
+    outline: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 4px 4px 0 #000;
+  }
+
+  .compact-search:focus {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--red);
+  }
+
+  .compact-search::placeholder { color: var(--text-muted); font-weight: normal; }
+
+  .shelf-wrapper {
+    position: relative;
+    padding-bottom: 0px;
+    margin: 0 -24px;
+    padding: 0 24px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .gallery {
+    display: flex;
+    gap: 12px;
+    padding: 10px 24px 20px;
+    flex: 1;
+    height: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
+    align-items: stretch;
+    scroll-behavior: smooth;
+  }
+
+  .gallery::-webkit-scrollbar { height: 12px; }
+  .gallery::-webkit-scrollbar-track { background: var(--bg3); border: 2px solid #000; }
+  .gallery::-webkit-scrollbar-thumb { background: var(--amber); border: 2px solid #000; }
+
+  .poster-slice {
+    position: relative;
+    width: 60px; /* Reduced from 80px */
+    background: #000;
+    overflow: hidden;
+    cursor: pointer;
+    transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s, transform 0.3s;
+    flex-shrink: 0;
+    border: 3px solid #000;
+    box-shadow: 4px 4px 0 #000;
+    animation: fadeIn 0.4s ease both;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Expand to full 16:9 poster on hover */
+  .poster-slice:hover {
+    width: 540px; 
+    box-shadow: 8px 8px 0 #000;
+    transform: translate(-4px, -4px);
+    z-index: 10;
+  }
+
+  .poster-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    opacity: 0.6;
+    transition: opacity 0.6s, transform 0.6s, filter 0.6s;
+    pointer-events: none;
+    filter: grayscale(100%) contrast(120%);
+  }
+
+  .poster-slice:hover .poster-img {
+    opacity: 1;
+    transform: scale(1.02);
+    filter: grayscale(0%) contrast(110%);
+  }
+
+  /* Vertical title shown when collapsed */
+  .vertical-title {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-180deg);
+    writing-mode: vertical-rl;
+    font-family: 'Dela Gothic One', cursive;
+    font-size: 16px;
+    color: #fff;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    max-height: 80%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .poster-slice:hover .vertical-title {
+    opacity: 0;
+  }
+
+  /* Info overlay shown when expanded */
+  .poster-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-end;
+  }
+
+  .info-left {
+    background: #fff;
+    border-top: 4px solid #000;
+    border-right: 4px solid #000;
+    padding: 16px 24px;
+    box-shadow: 8px -8px 0 var(--amber);
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    max-width: 80%;
+  }
+
+  .poster-slice:hover .info-left {
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .poster-title {
+    font-family: 'Dela Gothic One', cursive;
+    font-size: 24px;
+    color: #000;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    line-height: 1.2;
+  }
+
+  .poster-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--red);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .poster-meta span.date {
+    color: var(--text-secondary);
+  }
+
+  .play-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    width: 80px;
+    height: 80px;
+    background: var(--amber);
+    border: 4px solid #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    z-index: 10;
+    box-shadow: 6px 6px 0 #000;
+  }
+
+  .poster-slice:hover .play-button {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(-5deg);
+  }
+
+  .play-button:hover {
+    background: var(--red);
+  }
+
+  .play-button svg { width: 36px; height: 36px; fill: #000; margin-left: 6px; }
+  
+  .poster-link {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+  }
+
+  .delete-btn {
+    position: absolute;
+    top: -4px; right: -4px;
+    width: 40px; height: 40px;
+    background: #fff;
+    border: 3px solid #000;
+    color: #000;
+    font-size: 20px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+    line-height: 1;
+    z-index: 20;
+    box-shadow: 4px 4px 0 #000;
+  }
+
+  .poster-slice:hover .delete-btn { opacity: 1; }
+  .delete-btn:hover { 
+    background: var(--red); 
+    color: #fff; 
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 #000;
+  }
+
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 20px;
+  }
+
+  .empty-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+    opacity: 0.2;
+  }
+
+  .empty-state p {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .app-footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 0 40px;
+    flex-shrink: 0;
+  }
+  .footer-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: bold;
+    color: #000;
+    letter-spacing: 0.1em;
+    background: var(--amber);
+    border: 2px solid #000;
+    padding: 6px 12px;
+    box-shadow: 3px 3px 0 #000;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 768px) {
+    .app-header, .app-footer { flex-direction: column; gap: 16px; padding: 16px 0; align-items: stretch; }
+    .header-left, .header-right { width: 100%; justify-content: space-between; }
+    .compact-input, .compact-search { flex: 1; width: auto; }
+    .footer-text { text-align: center; order: 2; margin-top: 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+
+<div class="wrap">
+  <header class="app-header">
+    <div class="header-left">
+      <h1 class="anime-title">elivamusto</h1>
+    </div>
+    
+    <div class="header-right">
+      <input type="text" id="searchInput" class="compact-search" placeholder="search collection..." autocomplete="off">
+      <div class="count-badge" id="countBadge">0 tracks</div>
+    </div>
+  </header>
+
+  <div class="loading-bar" id="loadingBar"></div>
+  <div class="error-msg" id="errorMsg"></div>
+
+  <div class="shelf-wrapper">
+    <div class="gallery" id="gallery"></div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-text">made for your ears only &nbsp;·&nbsp; data stays in your browser</div>
+    <div class="footer-action">
+      <div class="compact-input">
+        <input
+          class="url-input"
+          id="urlInput"
+          type="url"
+          placeholder="youtube link..."
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button class="icon-btn" id="addBtn" title="Add Track">+</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+const STORAGE_KEY = 'music_diary_v1';
+
+function getYTId(url) {
+  try {
+    const u = new URL(url.trim());
+    if (u.hostname === 'youtu.be') return u.pathname.slice(1).split('?')[0];
+    if (u.hostname.includes('youtube.com')) {
+      if (u.pathname.startsWith('/shorts/')) return u.pathname.split('/shorts/')[1].split('?')[0];
+      return u.searchParams.get('v');
+    }
+  } catch(e) {}
+  const m = url.match(/(?:v=|youtu\.be\/|shorts\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+function thumb(id) {
+  return `https://img.youtube.com/vi/${id}/maxresdefault.jpg`;
+}
+
+function cleanTitle(title) {
+  let cleaned = title;
+  // Remove text in parentheses or brackets (e.g. (Official Video), [4K])
+  cleaned = cleaned.replace(/[\(\[].*?[\)\]]/g, '');
+  
+  // Split by common separators to try to isolate the song name
+  if (cleaned.includes('-')) {
+    cleaned = cleaned.split('-').pop(); 
+  } else if (cleaned.includes('|')) {
+    cleaned = cleaned.split('|')[0];
+  }
+  
+  // Remove "ft.", "feat.", "M/V" etc.
+  cleaned = cleaned.split(/ft\.|feat\.|m\/v/i)[0];
+  
+  return cleaned.trim() || title;
+}
+
+function thumbFallback(img, id) {
+  img.onerror = null;
+  img.src = `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+}
+
+async function fetchMeta(url) {
+  const endpoints = [
+    `https://noembed.com/embed?url=${encodeURIComponent(url)}`,
+    `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`
+  ];
+  for (const ep of endpoints) {
+    try {
+      const res = await fetch(ep);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.title) return data;
+      }
+    } catch(e) {}
+  }
+  throw new Error('Could not fetch video info');
+}
+
+function fmtDate(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' });
+}
+
+function getVinylColor(id) {
+  const str = id.toString();
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  
+  const colors = ['#e8a030', '#e84040', '#3080e8', '#30e8a0', '#e830d0', '#f0ede6'];
+  return colors[Math.abs(hash) % colors.length];
+}
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch(e) { return []; }
+}
+
+function save(tracks) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tracks));
+}
+
+function renderAll(searchQuery = '') {
+  const tracks = load();
+  const gallery = document.getElementById('gallery');
+  const badge = document.getElementById('countBadge');
+  badge.textContent = `${tracks.length} track${tracks.length !== 1 ? 's' : ''} listened`;
+  gallery.innerHTML = '';
+
+  const q = searchQuery.toLowerCase().trim();
+  const filteredTracks = tracks.filter(t => 
+    !q || t.title.toLowerCase().includes(q) || t.channel.toLowerCase().includes(q)
+  );
+
+  if (filteredTracks.length === 0) {
+    gallery.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">♫</div>
+        <p>${tracks.length === 0 ? 'no tracks yet.<br>paste a youtube link above and start your diary.' : 'no tracks match your search.'}</p>
+      </div>`;
+    return;
+  }
+
+  filteredTracks.slice().reverse().forEach((t, i) => {
+    const card = document.createElement('div');
+    card.className = 'poster-slice';
+    card.style.animationDelay = `${i * 0.04}s`;
+
+    card.innerHTML = `
+      <img class="poster-img" id="img-${t.id}-${t.addedAt}" src="${thumb(t.videoId)}" alt="${t.title}" onerror="thumbFallback(this,'${t.videoId}')"/>
+      
+      <div class="vertical-title">${escHtml(cleanTitle(t.title))}</div>
+      
+      <div class="poster-info">
+        <div class="info-left">
+          <div class="poster-title">${escHtml(t.title)}</div>
+          <div class="poster-meta">
+            <span>${escHtml(t.channel)}</span>
+            <span class="date">• ${fmtDate(t.addedAt)}</span>
+          </div>
+        </div>
+      </div>
+
+      <a class="poster-link" href="${t.url}" target="_blank" rel="noopener" title="Watch on YouTube">
+        <div class="play-button">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+      </a>
+      
+      <button class="delete-btn" data-id="${t.id}" title="Remove">✕</button>
+    `;
+
+    const img = card.querySelector('img');
+    if(img.complete) img.classList.add('loaded');
+    else img.onload = () => img.classList.add('loaded');
+
+    card.querySelector('.delete-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const tracks2 = load().filter(x => x.id !== t.id);
+      save(tracks2);
+      renderAll(document.getElementById('searchInput').value);
+    });
+
+    gallery.appendChild(card);
+  });
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+async function addTrack() {
+  const input = document.getElementById('urlInput');
+  const btn = document.getElementById('addBtn');
+  const bar = document.getElementById('loadingBar');
+  const url = input.value.trim();
+
+  if (!url) return;
+
+  const videoId = getYTId(url);
+  if (!videoId) { showError('⚠ Could not find a YouTube video ID in that link.'); return; }
+
+  const tracks = load();
+  if (tracks.find(t => t.videoId === videoId)) {
+    showError('⚠ This track is already in your diary.');
+    return;
+  }
+
+  btn.disabled = true;
+  bar.classList.add('show');
+
+  try {
+    const meta = await fetchMeta(url);
+    const track = {
+      id: Date.now().toString(),
+      videoId,
+      url: `https://www.youtube.com/watch?v=${videoId}`,
+      title: meta.title || 'Unknown Title',
+      channel: meta.author_name || 'Unknown Channel',
+      addedAt: Date.now()
+    };
+    tracks.push(track);
+    save(tracks);
+    input.value = '';
+    renderAll(document.getElementById('searchInput').value);
+  } catch(e) {
+    showError('⚠ Could not load video info — check the link and try again.');
+  } finally {
+    btn.disabled = false;
+    bar.classList.remove('show');
+  }
+}
+
+document.getElementById('addBtn').addEventListener('click', addTrack);
+
+document.getElementById('urlInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addTrack();
+});
+
+document.getElementById('urlInput').addEventListener('paste', () => {
+  setTimeout(addTrack, 150);
+});
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  renderAll(e.target.value);
+});
+
+// Horizontal scroll on wheel
+document.getElementById('gallery').addEventListener('wheel', (e) => {
+  if (e.deltaY !== 0 && !e.shiftKey) {
+    e.preventDefault();
+    document.getElementById('gallery').scrollBy({
+      left: e.deltaY * 2,
+      behavior: 'auto'
+    });
+  }
+});
+
+renderAll();
+</script>
+</body>
+</html>
