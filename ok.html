@@ -23,14 +23,18 @@
     --red: #e63946;
   }
   html.dark {
-    --bg: #121212;
+    --bg: #0f0f0f;
     --bg2: #000000;
     --bg3: #1e1e1e;
     --border: #f4f1eb;
     --border-hover: #ffffff;
-    --text-primary: #f4f1eb;
-    --text-secondary: #aaaaaa;
-    --text-muted: #888888;
+    --text-primary: #f0ece3;
+    --text-secondary: #888;
+    --text-muted: #555;
+  }
+  html.dark body {
+    background-color: #0f0f0f;
+    background-image: radial-gradient(#222 1.5px, transparent 1.5px);
   }
 
 
@@ -42,7 +46,7 @@
     display: flex;
     flex-direction: column;
     background-color: var(--bg);
-    background-image: radial-gradient(#d4d0c5 2px, transparent 2px);
+    background-image: radial-gradient(#c8c4b8 1.5px, transparent 1.5px);
     background-size: 16px 16px;
   }
 
@@ -97,31 +101,36 @@
     border: 3px solid var(--border);
     color: var(--border);
     font-family: 'Dela Gothic One', cursive;
-    font-size: 14px;
-    padding: 6px 16px;
+    font-size: 13px;
+    padding: 6px 0;
+    width: 110px;
+    text-align: center;
     cursor: pointer;
     box-shadow: 4px 4px 0 var(--border);
-    transition: transform 0.1s, box-shadow 0.1s, background 0.2s;
-    min-width: 100px;
-    text-align: center;
+    transition: transform 0.1s, box-shadow 0.1s;
     position: relative;
     overflow: visible;
   }
-  .tab-soon::after {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    content: 'SOON';
-    background: var(--border);
-    color: var(--bg2);
-    font-size: 8px;
-    padding: 2px 5px;
-    font-family: 'DM Mono', monospace;
-    letter-spacing: 0.1em;
+  .tab-btn[data-category="movies"],
+  .tab-btn[data-category="anime"] {
+    border-style: dashed;
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
   }
-  .tab-btn:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 var(--amber);
+  .tab-btn[data-category="movies"]::after,
+  .tab-btn[data-category="anime"]::after {
+    content: 'SOON';
+    position: absolute;
+    top: -9px;
+    right: -9px;
+    background: var(--border);
+    color: var(--amber);
+    font-size: 8px;
+    font-family: 'DM Mono', monospace;
+    font-weight: bold;
+    padding: 2px 5px;
+    letter-spacing: 0.12em;
   }
   .tab-btn.active {
     background: var(--amber);
@@ -131,12 +140,13 @@
   }
 
   h1.anime-title {
-    font-family: 'Rubik Mono One', sans-serif;
+    font-family: 'Dela Gothic One', cursive;
     font-size: clamp(32px, 6vw, 56px);
     color: var(--bg2);
     -webkit-text-stroke: 2px var(--border);
     text-shadow: 
-      3px 3px 0 var(--border), 
+      2px 2px 0 var(--border),
+      4px 4px 0 var(--border),
       6px 6px 0 var(--amber);
     line-height: 1;
     letter-spacing: 0.05em;
@@ -576,23 +586,31 @@
 
 <div class="wrap">
   <header class="app-header">
-    <div class="header-left" style="display: flex; align-items: center; gap: 16px;">
+    <div class="header-left">
       <h1 class="anime-title">Zersap</h1>
-      <button id="themeToggle" title="Toggle Theme" style="background: var(--bg2); border: 2px solid var(--border); color: var(--text-primary); cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; box-shadow: 2px 2px 0 var(--border); font-size: 16px; font-weight: bold;">◑</button>
+      <div style="
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        letter-spacing: 0.2em;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        margin-top: 4px;
+      ">メディア日記 · media diary</div>
     </div>
     
     <div class="header-center">
       <div class="category-tabs">
         <button class="tab-btn active" data-category="music">MUSIC</button>
-        <button class="tab-btn tab-soon" data-category="movies" style="border-style: dashed; color: var(--text-muted);">MOVIES</button>
-        <button class="tab-btn tab-soon" data-category="anime" style="border-style: dashed; color: var(--text-muted);">ANIME</button>
+        <button class="tab-btn" data-category="movies">MOVIES</button>
+        <button class="tab-btn" data-category="anime">ANIME</button>
       </div>
     </div>
     
-    <div class="header-right">
+    <div class="header-right" style="display: flex; align-items: center; gap: 16px;">
+      <button id="themeToggle" title="Toggle Theme" style="background: var(--bg2); border: 2px solid var(--border); color: var(--text-primary); cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; box-shadow: 2px 2px 0 var(--border); font-size: 16px; font-weight: bold;">◑</button>
       <div style="position: relative; display: flex; align-items: center;">
         <input type="text" id="searchInput" class="compact-search" placeholder="search collection..." autocomplete="off">
-        <button id="clearSearchBtn" style="position: absolute; right: 8px; background: none; border: none; font-size: 16px; cursor: pointer; display: none; font-weight: bold;">✕</button>
+        <button id="clearSearchBtn" style="position: absolute; right: 8px; background: none; border: none; font-size: 16px; cursor: pointer; display: none; font-weight: bold; color: var(--border);">✕</button>
       </div>
       <div class="count-badge" id="countBadge">0 tracks</div>
     </div>
