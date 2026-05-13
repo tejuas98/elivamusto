@@ -62,10 +62,43 @@
     margin-bottom: 20px;
   }
 
-  .header-left, .header-right {
+  .header-left, .header-center, .header-right {
     display: flex;
     align-items: center;
     gap: 16px;
+  }
+
+  .header-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .category-tabs {
+    display: flex;
+    gap: 12px;
+  }
+  
+  .tab-btn {
+    background: #fff;
+    border: 3px solid #000;
+    color: #000;
+    font-family: 'Dela Gothic One', cursive;
+    font-size: 14px;
+    padding: 6px 16px;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 #000;
+    transition: transform 0.1s, box-shadow 0.1s, background 0.2s;
+  }
+  .tab-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--amber);
+  }
+  .tab-btn.active {
+    background: var(--amber);
+    color: #000;
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 #000;
   }
 
   h1.anime-title {
@@ -262,16 +295,16 @@
     height: 100%;
     object-fit: cover;
     object-position: center;
-    opacity: 0.6;
+    opacity: 0.8;
     transition: opacity 0.6s, transform 0.6s, filter 0.6s;
     pointer-events: none;
-    filter: grayscale(100%) contrast(120%);
+    filter: contrast(110%) saturate(120%);
   }
 
   .poster-slice:hover .poster-img {
     opacity: 1;
     transform: scale(1.02);
-    filter: grayscale(0%) contrast(110%);
+    filter: contrast(120%) saturate(140%);
   }
 
   /* Vertical title shown when collapsed */
@@ -470,6 +503,14 @@
       <h1 class="anime-title">elivamusto</h1>
     </div>
     
+    <div class="header-center">
+      <div class="category-tabs">
+        <button class="tab-btn active" data-category="music">MUSIC</button>
+        <button class="tab-btn" data-category="movies">MOVIES</button>
+        <button class="tab-btn" data-category="anime">ANIME</button>
+      </div>
+    </div>
+    
     <div class="header-right">
       <input type="text" id="searchInput" class="compact-search" placeholder="search collection..." autocomplete="off">
       <div class="count-badge" id="countBadge">0 tracks</div>
@@ -569,51 +610,67 @@ function fmtDate(ts) {
 function getVinylColor(id) {
   const str = id.toString();
   let hash = 0;
-  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  
-  const colors = ['#e8a030', '#e84040', '#3080e8', '#30e8a0', '#e830d0', '#f0ede6'];
-  return colors[Math.abs(hash) % colors.length];
-}
+const STORAGE_KEYS = {
+    music: 'music_diary_v1',
+    movies: 'movies_diary_v1',
+    anime: 'anime_diary_v1'
+  };
+  let activeCategory = 'music';
 
-function load() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-  catch(e) { return []; }
-}
-
-function save(tracks) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tracks));
-}
-
-function renderAll(searchQuery = '') {
-  const tracks = load();
-  const gallery = document.getElementById('gallery');
-  const badge = document.getElementById('countBadge');
-  badge.textContent = `${tracks.length} track${tracks.length !== 1 ? 's' : ''} listened`;
-  gallery.innerHTML = '';
-
-  const q = searchQuery.toLowerCase().trim();
-  const filteredTracks = tracks.filter(t => 
-    !q || t.title.toLowerCase().includes(q) || t.channel.toLowerCase().includes(q)
-  );
-
-  if (filteredTracks.length === 0) {
-    gallery.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">♫</div>
-        <p>${tracks.length === 0 ? 'no tracks yet.<br>paste a youtube link above and start your diary.' : 'no tracks match your search.'}</p>
-      </div>`;
-    return;
+  function getVinylColor(id) {
+    const str = id.toString();
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    
+    const colors = ['#e8a030', '#e84040', '#3080e8', '#30e8a0', '#e830d0', '#f0ede6'];
+    return colors[Math.abs(hash) % colors.length];
   }
 
-  filteredTracks.slice().reverse().forEach((t, i) => {
-    const card = document.createElement('div');
-    card.className = 'poster-slice';
-    card.style.animationDelay = `${i * 0.04}s`;
+  function load() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEYS[activeCategory])) || []; }
+    catch(e) { return []; }
+  }
 
-    card.innerHTML = `
-      <img class="poster-img" id="img-${t.id}-${t.addedAt}" src="${thumb(t.videoId)}" alt="${t.title}" onerror="thumbFallback(this,'${t.videoId}')"/>
-      
-      <div class="vertical-title">${escHtml(cleanTitle(t.title))}</div>
+  function save(items) {
+    localStorage.setItem(STORAGE_KEYS[activeCategory], JSON.stringify(items));
+  }
+
+  function renderAll(searchQuery = '') {
+    const items = load();
+    const gallery = document.getElementById('gallery');
+    const badge = document.getElementById('countBadge');
+    
+    const actionText = activeCategory === 'music' ? 'listened' : 'watched';
+    const typeLabel = activeCategory === 'anime' ? 'anime' : (activeCategory === 'movies' ? 'movies' : 'tracks');
+    badge.textContent = `${items.length} ${typeLabel} ${actionText}`;
+    gallery.innerHTML = '';
+
+    const q = searchQuery.toLowerCase().trim();
+    const filteredItems = items.filter(t => 
+      !q || t.title.toLowerCase().includes(q) || t.channel.toLowerCase().includes(q)
+    );
+
+    if (filteredItems.length === 0) {
+      gallery.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">♫</div>
+          <p>${items.length === 0 ? `no ${typeLabel} yet.<br>add below to start your diary.` : 'no match found.'}</p>
+        </div>`;
+      return;
+    }
+
+    filteredItems.slice().reverse().forEach((t, i) => {
+      const card = document.createElement('div');
+      card.className = 'poster-slice';
+      card.style.animationDelay = `${i * 0.04}s`;
+
+      const thumbUrl = t.thumbnail ? t.thumbnail : thumb(t.videoId);
+      const fallbackUrl = t.thumbnail ? t.thumbnail : `https://img.youtube.com/vi/${t.videoId}/hqdefault.jpg`;
+
+      card.innerHTML = `
+        <img class="poster-img" id="img-${t.id}-${t.addedAt}" src="${thumbUrl}" alt="${t.title}" onerror="this.onerror=null; this.src='${fallbackUrl}'"/>
+        
+        <div class="vertical-title">${escHtml(cleanTitle(t.title))}</div>
       
       <div class="poster-info">
         <div class="info-left">
@@ -625,7 +682,7 @@ function renderAll(searchQuery = '') {
         </div>
       </div>
 
-      <a class="poster-link" href="${t.url}" target="_blank" rel="noopener" title="Watch on YouTube">
+        <a class="poster-link" href="${t.url || '#'}" target="_blank" rel="noopener" title="Open Link">
         <div class="play-button">
           <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
         </div>
@@ -638,19 +695,20 @@ function renderAll(searchQuery = '') {
     if(img.complete) img.classList.add('loaded');
     else img.onload = () => img.classList.add('loaded');
 
-    card.querySelector('.delete-btn').addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const tracks2 = load().filter(x => x.id !== t.id);
-      save(tracks2);
-      renderAll(document.getElementById('searchInput').value);
-    });
+      card.querySelector('.delete-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const items2 = load().filter(x => x.id !== t.id);
+        save(items2);
+        renderAll(document.getElementById('searchInput').value);
+      });
 
     gallery.appendChild(card);
   });
 }
 
 function escHtml(s) {
+  if (!s) return '';
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
@@ -661,63 +719,134 @@ function showError(msg) {
   setTimeout(() => el.classList.remove('show'), 3500);
 }
 
-async function addTrack() {
-  const input = document.getElementById('urlInput');
-  const btn = document.getElementById('addBtn');
-  const bar = document.getElementById('loadingBar');
-  const url = input.value.trim();
-
-  if (!url) return;
-
-  const videoId = getYTId(url);
-  if (!videoId) { showError('⚠ Could not find a YouTube video ID in that link.'); return; }
-
-  const tracks = load();
-  if (tracks.find(t => t.videoId === videoId)) {
-    showError('⚠ This track is already in your diary.');
-    return;
+async function fetchMeta(url) {
+  const endpoints = [
+    `https://noembed.com/embed?url=${encodeURIComponent(url)}`,
+    `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`
+  ];
+  for (const ep of endpoints) {
+    try {
+      const res = await fetch(ep);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.title) return data;
+      }
+    } catch(e) {}
   }
-
-  btn.disabled = true;
-  bar.classList.add('show');
-
-  try {
-    const meta = await fetchMeta(url);
-    const track = {
-      id: Date.now().toString(),
-      videoId,
-      url: `https://www.youtube.com/watch?v=${videoId}`,
-      title: meta.title || 'Unknown Title',
-      channel: meta.author_name || 'Unknown Channel',
-      addedAt: Date.now()
-    };
-    tracks.push(track);
-    save(tracks);
-    input.value = '';
-    renderAll(document.getElementById('searchInput').value);
-  } catch(e) {
-    showError('⚠ Could not load video info — check the link and try again.');
-  } finally {
-    btn.disabled = false;
-    bar.classList.remove('show');
-  }
+  throw new Error('Could not fetch video info');
 }
 
-document.getElementById('addBtn').addEventListener('click', addTrack);
+  async function addTrack() {
+    const input = document.getElementById('urlInput');
+    const query = input.value.trim();
+    if (!query) return;
 
-document.getElementById('urlInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') addTrack();
-});
+    const btn = document.getElementById('addBtn');
+    const bar = document.getElementById('loadingBar');
+    
+    btn.disabled = true;
+    bar.style.display = 'block';
+    showError('');
 
-document.getElementById('urlInput').addEventListener('paste', () => {
-  setTimeout(addTrack, 150);
-});
+    try {
+      let newItem;
+
+      if (activeCategory === 'music') {
+        let videoId = '';
+        try {
+          const urlObj = new URL(query);
+          if (urlObj.hostname.includes('youtube.com')) {
+            videoId = urlObj.searchParams.get('v');
+          } else if (urlObj.hostname.includes('youtu.be')) {
+            videoId = urlObj.pathname.slice(1);
+          }
+        } catch(e) {}
+        if (!videoId) throw new Error('Invalid YouTube URL');
+
+        const data = await fetchMeta(query);
+        newItem = {
+          id: videoId,
+          videoId: videoId,
+          title: data.title,
+          channel: data.author_name,
+          url: query,
+          addedAt: Date.now()
+        };
+      } else if (activeCategory === 'movies') {
+        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=movie&limit=1`);
+        const data = await res.json();
+        if (!data.results || data.results.length === 0) throw new Error('Movie not found');
+        
+        const movie = data.results[0];
+        newItem = {
+          id: movie.trackId.toString(),
+          title: movie.trackName,
+          channel: movie.directorName || 'Unknown Director',
+          url: movie.trackViewUrl,
+          thumbnail: movie.artworkUrl100.replace('100x100bb.jpg', '600x600bb.jpg'),
+          addedAt: Date.now()
+        };
+      } else if (activeCategory === 'anime') {
+        const res = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}&limit=1`);
+        const data = await res.json();
+        if (!data.data || data.data.length === 0) throw new Error('Anime not found');
+        
+        const anime = data.data[0];
+        newItem = {
+          id: anime.mal_id.toString(),
+          title: anime.title_english || anime.title,
+          channel: anime.studios && anime.studios.length > 0 ? anime.studios[0].name : 'Unknown Studio',
+          url: anime.url,
+          thumbnail: anime.images.jpg.large_image_url || anime.images.jpg.image_url,
+          addedAt: Date.now()
+        };
+      }
+
+      const items = load();
+      if (items.some(x => x.id === newItem.id)) {
+        throw new Error('Already added to your diary');
+      }
+
+      items.push(newItem);
+      save(items);
+      
+      input.value = '';
+      renderAll(document.getElementById('searchInput').value);
+    } catch (e) {
+      showError(e.message);
+    } finally {
+      btn.disabled = false;
+      bar.style.display = 'none';
+    }
+  }
+
+  document.getElementById('addBtn').addEventListener('click', addTrack);
+
+  document.getElementById('urlInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addTrack();
+  });
+
+  document.getElementById('urlInput').addEventListener('paste', () => {
+    setTimeout(addTrack, 150);
+  });
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      activeCategory = e.currentTarget.dataset.category;
+      
+      const input = document.getElementById('urlInput');
+      if (activeCategory === 'music') input.placeholder = 'youtube link...';
+      if (activeCategory === 'movies') input.placeholder = 'search movie...';
+      if (activeCategory === 'anime') input.placeholder = 'search anime...';
+      
+      renderAll(document.getElementById('searchInput').value);
+    });
+  });
 
 document.getElementById('searchInput').addEventListener('input', (e) => {
   renderAll(e.target.value);
-});
-
-// Horizontal scroll on wheel
 document.getElementById('gallery').addEventListener('wheel', (e) => {
   if (e.deltaY !== 0 && !e.shiftKey) {
     e.preventDefault();
