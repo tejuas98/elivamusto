@@ -699,6 +699,7 @@ function fmtDate(ts) {
       const card = document.createElement('div');
       card.className = 'poster-slice';
       card.style.animationDelay = `${i * 0.04}s`;
+      card.draggable = true;
       card.dataset.id = t.id;
 
       const thumbUrl = t.thumbnail || (t.videoId ? thumb(t.videoId) : '');
@@ -908,6 +909,45 @@ clearSearchBtn.addEventListener('click', () => {
   searchInput.value = '';
   clearSearchBtn.style.display = 'none';
   renderAll('');
+});
+
+// Drag and Drop Engine
+let draggedId = null;
+
+gallery.addEventListener('dragstart', (e) => {
+  const card = e.target.closest('.poster-slice');
+  if (!card) return;
+  draggedId = card.dataset.id;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => card.style.opacity = '0.5', 0);
+});
+
+gallery.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+});
+
+gallery.addEventListener('drop', (e) => {
+  e.preventDefault();
+  const targetCard = e.target.closest('.poster-slice');
+  if (!targetCard || !draggedId || targetCard.dataset.id === draggedId) return;
+
+  const items = load();
+  const fromIdx = items.findIndex(x => x.id === draggedId);
+  const toIdx = items.findIndex(x => x.id === targetCard.dataset.id);
+  
+  if (fromIdx !== -1 && toIdx !== -1) {
+    const [movedItem] = items.splice(fromIdx, 1);
+    items.splice(toIdx, 0, movedItem);
+    save(items);
+    renderAll(searchInput.value);
+  }
+});
+
+gallery.addEventListener('dragend', (e) => {
+  const card = e.target.closest('.poster-slice');
+  if (card) card.style.opacity = '1';
+  draggedId = null;
 });
 
 document.getElementById('gallery').addEventListener('wheel', (e) => {
