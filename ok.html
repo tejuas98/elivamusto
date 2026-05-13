@@ -42,37 +42,7 @@
     mix-blend-mode: multiply;
   }
 
-  .diorama-stage {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    overflow: hidden;
-  }
 
-  .diorama-shape {
-    position: absolute;
-    border: 4px solid #000;
-    box-shadow: 8px 8px 0px #000;
-    will-change: transform;
-    transition: transform 0.1s ease-out;
-    background: #fff;
-  }
-
-  .shape-circle { top: 15%; left: 15%; width: 300px; height: 300px; border-radius: 50%; }
-  .shape-rect { bottom: 15%; right: 15%; width: 200px; height: 200px; background: var(--amber); transform: rotate(-15deg); }
-  
-  .shape-cross { 
-    top: 25%; right: 35%; width: 60px; height: 60px; 
-    background: transparent; border: none; box-shadow: none;
-  }
-  .shape-cross::before, .shape-cross::after {
-    content: ''; position: absolute; background: #000;
-  }
-  .shape-cross::before { top: 50%; left: 0; right: 0; height: 12px; transform: translateY(-50%); }
-  .shape-cross::after { left: 50%; top: 0; bottom: 0; width: 12px; transform: translateX(-50%); }
-  
-  .shape-pill { bottom: 25%; left: 30%; width: 150px; height: 60px; border-radius: 30px; background: #fff; transform: rotate(20deg); }
 
   .wrap { 
     width: 100%;
@@ -529,13 +499,6 @@
 <body>
 <div class="noise"></div>
 
-<div class="diorama-stage">
-  <div class="diorama-shape shape-circle layer-bg"></div>
-  <div class="diorama-shape shape-pill layer-bg"></div>
-  <div class="diorama-shape shape-rect layer-mid"></div>
-  <div class="diorama-shape shape-cross layer-fg"></div>
-</div>
-
 <div class="wrap">
   <header class="app-header">
     <div class="header-left">
@@ -875,25 +838,6 @@ async function fetchMeta(url) {
 
 document.getElementById('searchInput').addEventListener('input', (e) => {
   renderAll(e.target.value);
-});
-
-// Parallax Engine
-document.addEventListener('mousemove', (e) => {
-  const cx = window.innerWidth / 2;
-  const cy = window.innerHeight / 2;
-  const dx = (e.clientX - cx) / cx;
-  const dy = (e.clientY - cy) / cy;
-
-  document.querySelectorAll('.layer-bg').forEach(el => {
-    const rot = el.classList.contains('shape-pill') ? ' rotate(20deg)' : '';
-    el.style.transform = `translate(${dx * -15}px, ${dy * -15}px)${rot}`;
-  });
-  document.querySelectorAll('.layer-mid').forEach(el => {
-    el.style.transform = `translate(${dx * -35}px, ${dy * -35}px) rotate(-15deg)`;
-  });
-  document.querySelectorAll('.layer-fg').forEach(el => {
-    el.style.transform = `translate(${dx * -70}px, ${dy * -70}px)`;
-  });
 });
 
 document.getElementById('gallery').addEventListener('wheel', (e) => {
