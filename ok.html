@@ -547,18 +547,6 @@
 <script>
 const STORAGE_KEY = 'music_diary_v1';
 
-function getYTId(url) {
-  try {
-    const u = new URL(url.trim());
-    if (u.hostname === 'youtu.be') return u.pathname.slice(1).split('?')[0];
-    if (u.hostname.includes('youtube.com')) {
-      if (u.pathname.startsWith('/shorts/')) return u.pathname.split('/shorts/')[1].split('?')[0];
-      return u.searchParams.get('v');
-    }
-  } catch(e) {}
-  const m = url.match(/(?:v=|youtu\.be\/|shorts\/)([a-zA-Z0-9_-]{11})/);
-  return m ? m[1] : null;
-}
 
 function thumb(id) {
   return `https://img.youtube.com/vi/${id}/maxresdefault.jpg`;
@@ -587,22 +575,6 @@ function thumbFallback(img, id) {
   img.src = `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
 }
 
-async function fetchMeta(url) {
-  const endpoints = [
-    `https://noembed.com/embed?url=${encodeURIComponent(url)}`,
-    `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`
-  ];
-  for (const ep of endpoints) {
-    try {
-      const res = await fetch(ep);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.title) return data;
-      }
-    } catch(e) {}
-  }
-  throw new Error('Could not fetch video info');
-}
 
 function fmtDate(ts) {
   const d = new Date(ts);
@@ -616,14 +588,6 @@ function fmtDate(ts) {
   };
   let activeCategory = 'music';
 
-  function getVinylColor(id) {
-    const str = id.toString();
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    
-    const colors = ['#e8a030', '#e84040', '#3080e8', '#30e8a0', '#e830d0', '#f0ede6'];
-    return colors[Math.abs(hash) % colors.length];
-  }
 
   function load() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEYS[activeCategory])) || []; }
@@ -810,8 +774,11 @@ async function fetchMeta(url) {
     if (e.key === 'Enter') addTrack();
   });
 
-  document.getElementById('urlInput').addEventListener('paste', () => {
-    setTimeout(addTrack, 150);
+  document.getElementById('urlInput').addEventListener('input', (e) => {
+    const val = e.target.value.trim();
+    if (val.includes('youtube.com') || val.includes('youtu.be')) {
+      addTrack();
+    }
   });
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
