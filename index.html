@@ -751,10 +751,11 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Center shelf vertically in the available space */
   }
 
   .install-banner { display: none; }
+
+  @media (max-width: 768px) {
     body { overflow-y: auto; height: auto; }
     .wrap { padding: 0 16px; height: auto; overflow: visible; }
     
@@ -1048,10 +1049,7 @@
   </footer>
 </div>
 
-<div class="install-banner" id="installBanner">
-  <div class="install-text">Install Zersap — add to your home screen</div>
-  <button class="install-close" id="closeInstall">×</button>
-</div>
+
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
