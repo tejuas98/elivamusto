@@ -303,35 +303,32 @@
     animation: fadeIn 0.4s ease both;
   }
 
-  /* Glare Layer Styles (The Glass Spine) */
+  /* Glare Layer Styles (The Half Blur) */
   .poster-slice::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; width: 20px; height: 100%;
-    background: linear-gradient(90deg, rgba(255,255,255,0.3) 0%, transparent 100%);
+    top: 0; left: 0; width: 50%; height: 100%;
+    background: rgba(0,0,0,0.05);
     z-index: 5;
     pointer-events: none;
     transition: all 0.3s;
-    backdrop-filter: blur(8px);
-    border-left: 1px solid rgba(255,255,255,0.4);
+    backdrop-filter: blur(12px);
   }
 
   html.glare-none .poster-slice::before { display: none !important; }
   html.glare-none .poster-img { opacity: 1 !important; }
 
   html.glare-subtle .poster-slice::before { 
-    width: 12px; 
-    background: linear-gradient(90deg, rgba(255,255,255,0.15) 0%, transparent 100%); 
-    backdrop-filter: none; 
-    border-left: 1px solid rgba(255,255,255,0.2);
+    width: 20%; 
+    background: rgba(0,0,0,0.02); 
+    backdrop-filter: blur(5px); 
   }
   html.glare-subtle .poster-img { opacity: 0.95 !important; }
 
   html.glare-thick .poster-slice::before { 
-    width: 25px; 
-    background: linear-gradient(90deg, rgba(255,255,255,0.25) 0%, transparent 100%); 
-    backdrop-filter: blur(12px); 
-    border-left: 1.5px solid rgba(255,255,255,0.5);
+    width: 50%; 
+    background: rgba(0,0,0,0.1); 
+    backdrop-filter: blur(20px); 
   }
   html.glare-thick .poster-img { opacity: 0.85 !important; }
 
