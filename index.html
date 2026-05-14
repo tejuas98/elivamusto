@@ -332,6 +332,10 @@
   }
   html.glare-thick .poster-img { opacity: 0.9 !important; }
 
+  /* Title Opacity Styles */
+  html.title-opacity-100 .vertical-title { opacity: 1 !important; }
+  html.title-opacity-50 .vertical-title { opacity: 0.5 !important; }
+
   html.hide-vertical-titles .vertical-title { display: none !important; }
 
   @keyframes fadeIn {
@@ -1073,6 +1077,14 @@
       </select>
     </div>
 
+    <div class="settings-item" style="width: 100%;">
+      <span style="font-family:'DM Mono', monospace; font-size:12px; font-weight:bold;">TITLE OPACITY</span>
+      <select id="titleOpacitySelect" class="settings-select">
+        <option value="100">100% (SHARP)</option>
+        <option value="50">50% (GHOST)</option>
+      </select>
+    </div>
+
     <div class="settings-item" style="margin-top: 20px;">
       <span style="font-family:'DM Mono', monospace; font-size:12px; font-weight:bold; display:block; margin-bottom:10px;">PRIMARY ACCENT COLOR</span>
       <div class="color-presets" id="colorPresets">
@@ -1631,6 +1643,7 @@ const closeSettings = document.getElementById('closeSettings');
 const toggleVerticalTitles = document.getElementById('toggleVerticalTitles');
 const verticalTitleCheckbox = document.getElementById('verticalTitleCheckbox');
 const glareStyleSelect = document.getElementById('glareStyleSelect');
+const titleOpacitySelect = document.getElementById('titleOpacitySelect');
 
 // Initial State: Vertical Titles
 let showVerticalTitles = localStorage.getItem('zersap_show_vertical_titles') !== 'false';
@@ -1664,6 +1677,18 @@ glareStyleSelect.addEventListener('change', (e) => {
   document.documentElement.classList.remove('glare-none', 'glare-subtle', 'glare-thick');
   document.documentElement.classList.add('glare-' + newStyle);
   localStorage.setItem('zersap_glare_style', newStyle);
+});
+
+// Initial State: Title Opacity
+let titleOpacity = localStorage.getItem('zersap_title_opacity') || '100';
+titleOpacitySelect.value = titleOpacity;
+document.documentElement.classList.add('title-opacity-' + titleOpacity);
+
+titleOpacitySelect.addEventListener('change', (e) => {
+  const newOpacity = e.target.value;
+  document.documentElement.classList.remove('title-opacity-100', 'title-opacity-50');
+  document.documentElement.classList.add('title-opacity-' + newOpacity);
+  localStorage.setItem('zersap_title_opacity', newOpacity);
 });
 
 settingsBtn.addEventListener('click', () => {
