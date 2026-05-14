@@ -355,12 +355,19 @@
       border: 4px solid var(--border);
       border-bottom: 10px solid var(--amber);
       /* The orange holder */
-      transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s, transform 0.3s;
+      transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
       overflow: visible;
       flex-shrink: 0;
       cursor: pointer;
       box-shadow: 6px 6px 0 var(--border);
       animation: fadeIn 0.4s ease both;
+    }
+
+    .poster-slice:hover {
+      transform: translateY(-8px);
+      width: 480px;
+      box-shadow: 12px 12px 0 var(--border);
+      z-index: 10;
     }
 
     /* Refined 100% Gloss Layer (With Perfect Subtle Blur) */
@@ -402,12 +409,7 @@
       }
     }
 
-    /* Expand to full 16:9 poster on hover */
-    .poster-slice:hover {
-      width: 480px;
-      box-shadow: 12px 12px 0 var(--border);
-      z-index: 10;
-    }
+
 
     .poster-img {
       width: 100%;
