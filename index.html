@@ -765,7 +765,14 @@ function fmtDate(ts) {
           sha: fileSha
         })
       });
-      if (!res.ok) throw new Error('Failed to save to cloud');
+      if (!res.ok) {
+        let errMsg = 'Failed to save to cloud';
+        try {
+          const errData = await res.json();
+          errMsg = `GitHub Error: ${errData.message}`;
+        } catch(e) {}
+        throw new Error(errMsg);
+      }
       const data = await res.json();
       fileSha = data.content.sha;
       return true;
