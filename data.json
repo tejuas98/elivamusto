@@ -1,5 +1,15 @@
 {
-  "music": [],
+  "music": [
+    {
+      "id": "-U3mIRrP3tE",
+      "videoId": "-U3mIRrP3tE",
+      "title": "Pashmina - Full Video | Fitoor | Aditya Roy Kapur, Katrina Kaif | Amit Trivedi",
+      "channel": "Zee Music Company",
+      "url": "https://youtu.be/-U3mIRrP3tE?si=K5a32-UFpfInzFjL",
+      "thumbnail": "https://i.ytimg.com/vi/-U3mIRrP3tE/hqdefault.jpg",
+      "addedAt": 1778747637851
+    }
+  ],
   "movies": [],
   "anime": []
 }
