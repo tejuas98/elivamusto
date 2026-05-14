@@ -267,11 +267,12 @@
     flex-direction: column;
     overflow-x: auto;
     overflow-y: hidden;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
-
-  .shelf-wrapper::-webkit-scrollbar { height: 12px; }
-  .shelf-wrapper::-webkit-scrollbar-track { background: var(--bg3); border: 2px solid var(--border); border-left: none; border-right: none; }
-  .shelf-wrapper::-webkit-scrollbar-thumb { background: var(--amber); border: 2px solid var(--border); }
+  .shelf-wrapper::-webkit-scrollbar {
+    display: none;
+  }
 
   .gallery {
     display: flex;
