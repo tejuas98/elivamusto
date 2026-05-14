@@ -871,13 +871,14 @@
     }
 
     .toggle-switch {
-      width: 48px;
-      height: 24px;
+      width: 44px;
+      height: 22px;
       border: 3px solid var(--border);
-      background: #e5e5e5;
+      background: #eee;
       position: relative;
       cursor: pointer;
-      transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 20px;
+      transition: background 0.3s ease;
       flex-shrink: 0;
       box-shadow: 2px 2px 0 var(--border);
     }
@@ -887,18 +888,19 @@
     }
 
     .toggle-knob {
-      width: 16px;
-      height: 16px;
-      background: var(--bg2);
+      width: 12px;
+      height: 12px;
+      background: white;
       border: 2px solid var(--border);
       position: absolute;
       top: 2px;
       left: 2px;
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 50%;
+      transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     }
 
     .toggle-switch.checked .toggle-knob {
-      transform: translateX(24px);
+      transform: translateX(22px);
     }
 
     .modal-overlay {
