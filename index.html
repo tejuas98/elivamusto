@@ -653,8 +653,8 @@
       margin-bottom: 20px;
     }
     
-    .header-left { order: 1; width: 100%; display: flex; align-items: center; justify-content: space-between; position: relative; }
-    .user-chip { order: 2; display: flex !important; position: static; }
+    .header-left { order: 1; width: 100%; display: flex; align-items: flex-start; justify-content: space-between; position: relative; }
+    .user-chip { order: 2; display: flex !important; position: static; gap: 8px; }
     
     .header-center { 
       order: 4;
@@ -676,7 +676,7 @@
     
     .header-left .subtitle { display: none; } /* Hide subtitle */
     h1.anime-title { font-size: clamp(28px, 8vw, 38px); }
-    .user-name { display: none; }
+    .user-name { display: block; font-size: 10px; }
     
     .shelf-wrapper { 
       margin: 0; 
