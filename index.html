@@ -723,38 +723,38 @@
     backdrop-filter: blur(2px);
   }
 
-  /* Vertical Title Visibility Control */
-  .hide-vertical-titles .vertical-title {
-    opacity: 0;
+  /* Color Presets */
+  .color-presets {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
   }
-  .hide-vertical-titles .poster-slice:hover .vertical-title {
-    opacity: 1;
-  }
-
-  .settings-item input[type="color"] {
-    cursor: pointer;
-    width: 40px;
+  .color-dot {
+    width: 30px;
     height: 30px;
     border: 3px solid var(--border);
-    background: none;
-    padding: 0;
-  }
-  .logout-btn {
-    width: 100%;
-    margin-top: 20px;
-    padding: 12px;
-    background: var(--red);
-    color: white;
-    border: 3px solid var(--border);
-    box-shadow: 4px 4px 0 var(--border);
-    font-family: 'Dela Gothic One', cursive;
     cursor: pointer;
-    text-transform: uppercase;
     transition: transform 0.1s;
   }
-  .logout-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--border); }
+  .color-dot:hover { transform: scale(1.1); }
+  .color-dot.active { 
+    box-shadow: 4px 4px 0 var(--border);
+    transform: translate(-2px, -2px);
+  }
 
-  @media (max-width: 768px) {
+  .shelf-wrapper {
+    position: relative;
+    padding-bottom: 0px;
+    margin: 0 -24px;
+    padding: 20px 24px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center shelf vertically in the available space */
+  }
+
+  .install-banner { display: none; }
     body { overflow-y: auto; height: auto; }
     .wrap { padding: 0 16px; height: auto; overflow: visible; }
     
@@ -1000,12 +1000,12 @@
     <div class="settings-item">
       <div class="settings-row" id="toggleVerticalTitles">
         <div class="checkbox-custom" id="verticalTitleCheckbox"></div>
-        <span>SHOW VERTICAL TITLES ON SHELF</span>
+        <span style="font-family:'DM Mono', monospace; font-size:12px; font-weight:bold;">SHOW VERTICAL TITLES ON SHELF</span>
       </div>
     </div>
 
-    <div class="settings-item">
-      <span>PRIMARY ACCENT COLOR</span>
+    <div class="settings-item" style="margin-top: 20px;">
+      <span style="font-family:'DM Mono', monospace; font-size:12px; font-weight:bold; display:block; margin-bottom:10px;">PRIMARY ACCENT COLOR</span>
       <div class="color-presets" id="colorPresets">
         <div class="color-dot active" data-color="#ff6b35" style="background: #ff6b35;"></div>
         <div class="color-dot" data-color="#e63946" style="background: #e63946;"></div>
@@ -1016,15 +1016,7 @@
       </div>
     </div>
 
-    <div class="settings-item" id="toggleVerticalTitles">
-      <div class="checkbox-custom" id="verticalTitleCheckbox"></div>
-      <span>SHOW VERTICAL TITLES ON SHELF</span>
-    </div>
-    <div class="settings-item">
-      <input type="color" id="themeColorPicker" value="#ff6b35">
-      <span>THEME COLOR</span>
-    </div>
-    <button class="logout-btn" id="modalLogoutBtn">SIGN OUT</button>
+    <button class="logout-btn" id="modalLogoutBtn" style="width: 100%; margin-top: 30px; padding: 12px; background: var(--red); color: white; border: 3px solid var(--border); box-shadow: 4px 4px 0 var(--border); font-family: 'Dela Gothic One', cursive; cursor: pointer;">SIGN OUT</button>
     <p style="font-family:'DM Mono', monospace; font-size:10px; color:var(--text-muted); margin-top:20px; text-transform:uppercase;">
       preferences are saved locally to your browser.
     </p>
@@ -1565,28 +1557,7 @@ document.getElementById('gallery').addEventListener('wheel', (e) => {
   }
 });
 
-// PWA & Install Banner Logic
-const isMobile = window.innerWidth < 768;
-const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-const bannerDismissed = localStorage.getItem('zersap_install_dismissed');
-let visitCount = parseInt(localStorage.getItem('zersap_visits') || '0');
 
-if (isMobile && !isStandalone && !bannerDismissed) {
-  visitCount++;
-  localStorage.setItem('zersap_visits', visitCount.toString());
-  
-  if (visitCount >= 2) {
-    const banner = document.getElementById('installBanner');
-    if (banner) {
-      banner.style.display = 'flex';
-      
-      document.getElementById('closeInstall').onclick = () => {
-        banner.style.display = 'none';
-        localStorage.setItem('zersap_install_dismissed', 'true');
-      };
-    }
-  }
-}
 
 // Settings Logic
 const settingsBtn = document.getElementById('settingsBtn');
@@ -1631,16 +1602,28 @@ toggleVerticalTitles.addEventListener('click', () => {
   }
 });
 
-// Theme Color Picker Logic
-const themeColorPicker = document.getElementById('themeColorPicker');
+// Theme Color Logic (Presets)
+const colorDots = document.querySelectorAll('.color-dot');
 const savedColor = localStorage.getItem('zersap_theme_color') || '#ff6b35';
 document.documentElement.style.setProperty('--amber', savedColor);
-themeColorPicker.value = savedColor;
 
-themeColorPicker.addEventListener('input', (e) => {
-  const color = e.target.value;
-  document.documentElement.style.setProperty('--amber', color);
-  localStorage.setItem('zersap_theme_color', color);
+// Highlight saved color dot
+colorDots.forEach(dot => {
+  if (dot.dataset.color === savedColor) {
+    dot.classList.add('active');
+  } else {
+    dot.classList.remove('active');
+  }
+  
+  dot.addEventListener('click', () => {
+    const newColor = dot.dataset.color;
+    document.documentElement.style.setProperty('--amber', newColor);
+    localStorage.setItem('zersap_theme_color', newColor);
+    
+    // Update active state
+    colorDots.forEach(d => d.classList.remove('active'));
+    dot.classList.add('active');
+  });
 });
 
 // Modal Logout Logic
