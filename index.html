@@ -584,10 +584,12 @@
     display: none;
     align-items: center;
     gap: 10px;
-    cursor: pointer;
-    position: relative;
     padding: 4px;
     transition: transform 0.2s;
+    position: absolute;
+    top: 40px;
+    right: 40px;
+    z-index: 100;
   }
   .user-chip:hover { transform: translateY(-2px); }
   
@@ -651,8 +653,8 @@
       margin-bottom: 20px;
     }
     
-    .header-left { order: 1; width: 100%; display: flex; align-items: center; justify-content: space-between; }
-    .user-chip { order: 2; display: flex !important; }
+    .header-left { order: 1; width: 100%; display: flex; align-items: center; justify-content: space-between; position: relative; }
+    .user-chip { order: 2; display: flex !important; position: static; }
     
     .header-center { 
       order: 4;
@@ -807,7 +809,7 @@
 
 <div class="wrap">
   <header class="app-header">
-    <div class="header-left" style="flex: 1; display: flex; align-items: center; justify-content: space-between;">
+    <div class="header-left">
       <div>
         <h1 class="anime-title">Zersap</h1>
         <div class="subtitle" style="
