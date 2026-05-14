@@ -651,7 +651,7 @@
       margin-bottom: 20px;
     }
     
-    .header-left { order: 1; flex: 1; }
+    .header-left { order: 1; width: 100%; display: flex; align-items: center; justify-content: space-between; }
     .user-chip { order: 2; display: flex !important; }
     
     .header-center { 
@@ -672,7 +672,7 @@
     .header-right > div:first-child { flex: 1; min-width: 120px; }
     .compact-search { width: 100%; }
     
-    .header-left div[style*="font-family"] { display: none; } /* Hide subtitle */
+    .header-left .subtitle { display: none; } /* Hide subtitle */
     h1.anime-title { font-size: clamp(28px, 8vw, 38px); }
     .user-name { display: none; }
     
@@ -807,16 +807,26 @@
 
 <div class="wrap">
   <header class="app-header">
-    <div class="header-left">
-      <h1 class="anime-title">Zersap</h1>
-      <div style="
-        font-family: 'DM Mono', monospace;
-        font-size: 10px;
-        letter-spacing: 0.2em;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        margin-top: 4px;
-      ">メディア日記 · media diary</div>
+    <div class="header-left" style="flex: 1; display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <h1 class="anime-title">Zersap</h1>
+        <div class="subtitle" style="
+          font-family: 'DM Mono', monospace;
+          font-size: 10px;
+          letter-spacing: 0.2em;
+          color: var(--text-muted);
+          text-transform: uppercase;
+          margin-top: 4px;
+        ">メディア日記 · media diary</div>
+      </div>
+      
+      <div id="userChip" class="user-chip">
+        <img id="userPhoto" class="user-photo" src="" alt="">
+        <span id="userName" class="user-name"></span>
+        <div id="userDropdown" class="user-dropdown">
+          <div id="signOutBtn" class="dropdown-item">Sign Out</div>
+        </div>
+      </div>
     </div>
     
     <div class="header-center">
@@ -828,13 +838,6 @@
     </div>
     
     <div class="header-right">
-      <div id="userChip" class="user-chip">
-        <img id="userPhoto" class="user-photo" src="" alt="">
-        <span id="userName" class="user-name"></span>
-        <div id="userDropdown" class="user-dropdown">
-          <div id="signOutBtn" class="dropdown-item">Sign Out</div>
-        </div>
-      </div>
       <div style="position: relative; display: flex; align-items: center;">
         <input type="text" id="searchInput" class="compact-search" placeholder="search collection..." autocomplete="off">
         <button id="clearSearchBtn" style="position: absolute; right: 8px; background: none; border: none; font-size: 16px; cursor: pointer; display: none; font-weight: bold; color: var(--border);">✕</button>
