@@ -383,7 +383,7 @@
       z-index: 5;
       pointer-events: none;
       transition: all 0.3s;
-      backdrop-filter: blur(1px);
+      backdrop-filter: blur(var(--book-blur, 1px));
     }
 
     .poster-slice:hover::before {
@@ -1302,6 +1302,11 @@
         </div>
       </div>
 
+      <div class="settings-item" style="margin-top: 5px;">
+        <span style="font-family:'DM Mono', monospace; font-size:12px; font-weight:bold; display:block; margin-bottom:10px;">BLUR INTENSITY</span>
+        <input type="range" id="blurSlider" min="0" max="8" step="0.5" value="1" style="width: 100%; accent-color: var(--amber); cursor: pointer;">
+      </div>
+
       <div class="settings-item" style="margin-top: 20px;">
         <span
           style="font-family:'DM Mono', monospace; font-size:12px; font-weight:bold; display:block; margin-bottom:10px;">PRIMARY
@@ -1904,6 +1909,20 @@
         document.documentElement.classList.add('hide-book-gloss');
         bookGlossCheckbox.classList.remove('checked');
       }
+    });
+
+    // Blur Intensity Slider Logic
+    const blurSlider = document.getElementById('blurSlider');
+    let currentBlur = localStorage.getItem('zersap_book_blur') || '1';
+    
+    // Apply initial blur
+    document.documentElement.style.setProperty('--book-blur', currentBlur + 'px');
+    blurSlider.value = currentBlur;
+
+    blurSlider.addEventListener('input', (e) => {
+      const val = e.target.value;
+      document.documentElement.style.setProperty('--book-blur', val + 'px');
+      localStorage.setItem('zersap_book_blur', val);
     });
 
     settingsBtn.addEventListener('click', () => {
