@@ -1161,22 +1161,15 @@ function fmtDate(ts) {
   const userChip = document.getElementById('userChip');
   const userPhoto = document.getElementById('userPhoto');
   const userName = document.getElementById('userName');
-  const userDropdown = document.getElementById('userDropdown');
   const authBtn = document.getElementById('authBtn');
 
-  userChip.addEventListener('click', () => {
-    userDropdown.classList.toggle('show');
-  });
-
-  document.addEventListener('click', (e) => {
-    if (!userChip.contains(e.target)) {
-      userDropdown.classList.remove('show');
-    }
-  });
-
-  document.getElementById('signOutBtn').addEventListener('click', async () => {
-    if (confirm('Sign out of Zersap?')) {
-      await signOut(auth);
+  // Login button logic
+  authBtn.addEventListener('click', async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (e) {
+      showError('Login failed: ' + e.message);
     }
   });
 
