@@ -678,16 +678,6 @@ function cleanTitle(title) {
   // Remove text in parentheses or brackets (e.g. (Official Video), [4K])
   cleaned = cleaned.replace(/[\(\[].*?[\)\]]/g, '');
   
-  // Split by common separators to try to isolate the song name
-  if (cleaned.includes('-')) {
-    cleaned = cleaned.split('-').pop(); 
-  } else if (cleaned.includes('|')) {
-    cleaned = cleaned.split('|')[0];
-  }
-  
-  // Remove "ft.", "feat.", "M/V" etc.
-  cleaned = cleaned.split(/ft\.|feat\.|m\/v/i)[0];
-  
   return cleaned.trim() || title;
 }
 
