@@ -25,22 +25,6 @@
     --text-muted: #666666;
     --red: #e63946;
   }
-  html.dark {
-    --bg: #111111;
-    --bg2: #111111;
-    --bg3: #1e1e1e;
-    --border: #ffffff;
-    --border-hover: #ffffff;
-    --text-primary: #f0ece3;
-    --text-secondary: #888;
-    --text-muted: #555;
-  }
-  html.dark body {
-    background-color: #111111;
-    background-image: radial-gradient(#2a2a2a 1.5px, transparent 1.5px);
-  }
-
-
   html { background: var(--bg); color: var(--text-primary); font-family: 'DM Sans', sans-serif; }
 
   body {
@@ -651,7 +635,7 @@
     display: none;
     opacity: 0;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    min-width: 300px;
+    min-width: 320px;
   }
   .settings-modal.show {
     display: block;
@@ -667,15 +651,52 @@
     align-items: center;
   }
   .settings-item {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
     font-family: 'DM Mono', monospace;
     font-weight: bold;
     font-size: 14px;
-    cursor: pointer;
   }
+  .settings-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    width: 100%;
+  }
+  .color-presets {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .color-dot {
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--border);
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .color-dot:hover { transform: scale(1.15); }
+  .color-dot.active { box-shadow: 0 0 0 3px var(--bg), 0 0 0 6px var(--border); }
+  
+  .settings-btn-danger {
+    width: 100%;
+    padding: 12px;
+    background: var(--red);
+    color: white;
+    border: 3px solid var(--border);
+    box-shadow: 4px 4px 0 var(--border);
+    font-family: 'Dela Gothic One', cursive;
+    cursor: pointer;
+    margin-top: 10px;
+    text-transform: uppercase;
+  }
+  .settings-btn-danger:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--border); }
+
   .checkbox-custom {
     width: 24px;
     height: 24px;
@@ -710,7 +731,28 @@
     opacity: 1;
   }
 
-  .install-banner { display: none; }
+  .settings-item input[type="color"] {
+    cursor: pointer;
+    width: 40px;
+    height: 30px;
+    border: 3px solid var(--border);
+    background: none;
+    padding: 0;
+  }
+  .logout-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px;
+    background: var(--red);
+    color: white;
+    border: 3px solid var(--border);
+    box-shadow: 4px 4px 0 var(--border);
+    font-family: 'Dela Gothic One', cursive;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: transform 0.1s;
+  }
+  .logout-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--border); }
 
   @media (max-width: 768px) {
     body { overflow-y: auto; height: auto; }
@@ -943,7 +985,6 @@
       <button id="settingsBtn" title="Settings" style="background: var(--bg2); border: 2px solid var(--border); color: var(--border); cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; box-shadow: 3px 3px 0 var(--border); transition: transform 0.1s;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
       </button>
-      <button id="themeToggle" title="Toggle Theme" style="background: var(--border); border: 2px solid var(--border); color: var(--bg2); cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; box-shadow: 3px 3px 0 var(--amber); font-size: 16px; font-weight: bold;">◑</button>
       <div class="count-badge" id="countBadge">0 tracks</div>
       <button id="authBtn" class="icon-btn" style="width: auto; padding: 0 16px; font-weight: bold; text-transform: uppercase; font-size: 11px;">Login</button>
     </div>
@@ -956,10 +997,34 @@
       <span>SETTINGS</span>
       <button id="closeSettings" style="background:none; border:none; cursor:pointer; font-size:24px; font-weight:bold; color:var(--border);">✕</button>
     </div>
+    <div class="settings-item">
+      <div class="settings-row" id="toggleVerticalTitles">
+        <div class="checkbox-custom" id="verticalTitleCheckbox"></div>
+        <span>SHOW VERTICAL TITLES ON SHELF</span>
+      </div>
+    </div>
+
+    <div class="settings-item">
+      <span>PRIMARY ACCENT COLOR</span>
+      <div class="color-presets" id="colorPresets">
+        <div class="color-dot active" data-color="#ff6b35" style="background: #ff6b35;"></div>
+        <div class="color-dot" data-color="#e63946" style="background: #e63946;"></div>
+        <div class="color-dot" data-color="#4895ef" style="background: #4895ef;"></div>
+        <div class="color-dot" data-color="#4cc9f0" style="background: #4cc9f0;"></div>
+        <div class="color-dot" data-color="#7209b7" style="background: #7209b7;"></div>
+        <div class="color-dot" data-color="#4ade80" style="background: #4ade80;"></div>
+      </div>
+    </div>
+
     <div class="settings-item" id="toggleVerticalTitles">
       <div class="checkbox-custom" id="verticalTitleCheckbox"></div>
       <span>SHOW VERTICAL TITLES ON SHELF</span>
     </div>
+    <div class="settings-item">
+      <input type="color" id="themeColorPicker" value="#ff6b35">
+      <span>THEME COLOR</span>
+    </div>
+    <button class="logout-btn" id="modalLogoutBtn">SIGN OUT</button>
     <p style="font-family:'DM Mono', monospace; font-size:10px; color:var(--text-muted); margin-top:20px; text-transform:uppercase;">
       preferences are saved locally to your browser.
     </p>
@@ -1068,15 +1133,7 @@ function fmtDate(ts) {
     anime: 'anime_diary_v1'
   };
 
-  const themeToggle = document.getElementById('themeToggle');
-  const currentTheme = localStorage.getItem('theme') || 'light';
-  if (currentTheme === 'dark') document.documentElement.classList.add('dark');
 
-  themeToggle.addEventListener('click', () => {
-    document.documentElement.classList.toggle('dark');
-    const isDark = document.documentElement.classList.contains('dark');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-  });
 
   let activeCategory = 'music';
 
@@ -1571,6 +1628,26 @@ toggleVerticalTitles.addEventListener('click', () => {
   } else {
     document.body.classList.add('hide-vertical-titles');
     verticalTitleCheckbox.classList.remove('checked');
+  }
+});
+
+// Theme Color Picker Logic
+const themeColorPicker = document.getElementById('themeColorPicker');
+const savedColor = localStorage.getItem('zersap_theme_color') || '#ff6b35';
+document.documentElement.style.setProperty('--amber', savedColor);
+themeColorPicker.value = savedColor;
+
+themeColorPicker.addEventListener('input', (e) => {
+  const color = e.target.value;
+  document.documentElement.style.setProperty('--amber', color);
+  localStorage.setItem('zersap_theme_color', color);
+});
+
+// Modal Logout Logic
+document.getElementById('modalLogoutBtn').addEventListener('click', async () => {
+  if (confirm('Sign out of Zersap?')) {
+    await signOut(auth);
+    location.reload();
   }
 });
 
