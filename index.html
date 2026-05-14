@@ -627,7 +627,10 @@
   </div>
 
   <footer class="app-footer">
-    <div class="footer-text">made for your ears only &nbsp;·&nbsp; data stays in your browser</div>
+    <div style="display: flex; gap: 12px; align-items: stretch;">
+      <button id="adminLoginBtn" class="icon-btn" style="width: auto; padding: 0 16px;" title="Admin Login">🔑</button>
+      <div class="footer-text">made for your ears only &nbsp;·&nbsp; cloud sync active</div>
+    </div>
     <div class="footer-action">
       <div class="compact-input">
         <input
@@ -700,13 +703,110 @@ function fmtDate(ts) {
   let activeCategory = 'music';
 
 
-  function load() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEYS[activeCategory])) || []; }
-    catch(e) { return []; }
+  const GITHUB_TOKEN_KEY = 'zersap_gh_token';
+  let githubToken = localStorage.getItem(GITHUB_TOKEN_KEY) || '';
+  const REPO = 'tejuas98/elivamusto';
+  let fileSha = null;
+  let appData = { music: [], movies: [], anime: [] };
+
+  document.getElementById('adminLoginBtn').addEventListener('click', () => {
+    if (githubToken) {
+      if (confirm('Logout of Admin mode?')) {
+        localStorage.removeItem(GITHUB_TOKEN_KEY);
+        location.reload();
+      }
+    } else {
+      const t = prompt('Enter GitHub Personal Access Token:');
+      if (t) {
+        localStorage.setItem(GITHUB_TOKEN_KEY, t);
+        location.reload();
+      }
+    }
+  });
+
+  async function fetchCloudData() {
+    try {
+      document.getElementById('loadingBar').style.display = 'block';
+      const res = await fetch(`https://api.github.com/repos/${REPO}/contents/data.json?timestamp=${Date.now()}`, {
+        headers: githubToken ? { 'Authorization': `token ${githubToken}` } : {}
+      });
+      if (res.ok) {
+        const data = await res.json();
+        fileSha = data.sha;
+        const content = decodeURIComponent(escape(atob(data.content)));
+        appData = JSON.parse(content);
+      }
+    } catch(e) {
+      console.error(e);
+      showError('Failed to fetch cloud data');
+    } finally {
+      document.getElementById('loadingBar').style.display = 'none';
+      renderAll();
+    }
   }
 
-  function save(items) {
-    localStorage.setItem(STORAGE_KEYS[activeCategory], JSON.stringify(items));
+  async function saveCloudData() {
+    if (!githubToken) {
+      showError('Admin login required');
+      return false;
+    }
+    try {
+      document.getElementById('loadingBar').style.display = 'block';
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(appData, null, 2))));
+      const res = await fetch(`https://api.github.com/repos/${REPO}/contents/data.json`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${githubToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: 'Update Zersap data',
+          content: content,
+          sha: fileSha
+        })
+      });
+      if (!res.ok) throw new Error('Failed to save to cloud');
+      const data = await res.json();
+      fileSha = data.content.sha;
+      return true;
+    } catch(e) {
+      console.error(e);
+      showError(e.message);
+      return false;
+    } finally {
+      document.getElementById('loadingBar').style.display = 'none';
+    }
+  }
+
+  function load() {
+    return appData[activeCategory] || [];
+  }
+
+  async function save(items) {
+    appData[activeCategory] = items;
+    await saveCloudData();
+  }
+
+  function applyAdminRules() {
+    const isAdmin = !!githubToken;
+    const input = document.getElementById('urlInput');
+    const addBtn = document.getElementById('addBtn');
+    
+    if (activeCategory === 'music') {
+      input.disabled = !isAdmin;
+      addBtn.disabled = !isAdmin;
+      input.placeholder = isAdmin ? 'youtube link...' : 'view only (login to edit)';
+    }
+    
+    document.getElementById('adminLoginBtn').style.background = isAdmin ? 'var(--amber)' : '';
+    document.getElementById('adminLoginBtn').style.color = isAdmin ? 'var(--bg2)' : '';
+    
+    if (!isAdmin) {
+      document.querySelectorAll('.pin-btn, .delete-btn').forEach(b => b.style.display = 'none');
+      document.querySelectorAll('.poster-slice').forEach(c => c.draggable = false);
+    } else {
+      document.querySelectorAll('.pin-btn, .delete-btn').forEach(b => b.style.display = '');
+    }
   }
 
   function renderAll(searchQuery = '') {
@@ -727,6 +827,7 @@ function fmtDate(ts) {
           <div class="empty-icon">🚧</div>
           <p>under construction.<br>this section is coming soon.</p>
         </div>`;
+      applyAdminRules();
       return;
     }
 
@@ -740,6 +841,7 @@ function fmtDate(ts) {
           <div class="empty-icon">♫</div>
           <p>${items.length === 0 ? `no ${typeLabel} yet.<br>add below to start your diary.` : 'no match found.'}</p>
         </div>`;
+      applyAdminRules();
       return;
     }
 
@@ -789,28 +891,29 @@ function fmtDate(ts) {
     if(img.complete) img.classList.add('loaded');
     else img.onload = () => img.classList.add('loaded');
 
-      card.querySelector('.pin-btn').addEventListener('click', (e) => {
+      card.querySelector('.pin-btn').addEventListener('click', async (e) => {
         e.preventDefault();
         e.stopPropagation();
         const allItems = load();
         const item = allItems.find(x => x.id === t.id);
         if (item) {
           item.isPinned = !item.isPinned;
-          save(allItems);
+          await save(allItems);
           renderAll(document.getElementById('searchInput').value);
         }
       });
 
-      card.querySelector('.delete-btn').addEventListener('click', (e) => {
+      card.querySelector('.delete-btn').addEventListener('click', async (e) => {
         e.preventDefault();
         e.stopPropagation();
         const items2 = load().filter(x => x.id !== t.id);
-        save(items2);
+        await save(items2);
         renderAll(document.getElementById('searchInput').value);
       });
 
     gallery.appendChild(card);
   });
+  applyAdminRules();
 }
 
 function escHtml(s) {
@@ -901,7 +1004,7 @@ async function fetchMeta(url) {
       }
 
       items.push(newItem);
-      save(items);
+      await save(items);
       
       input.value = '';
       renderAll(document.getElementById('searchInput').value);
@@ -979,7 +1082,7 @@ gallery.addEventListener('dragover', (e) => {
   e.dataTransfer.dropEffect = 'move';
 });
 
-gallery.addEventListener('drop', (e) => {
+gallery.addEventListener('drop', async (e) => {
   e.preventDefault();
   const targetCard = e.target.closest('.poster-slice');
   if (!targetCard || !draggedId || targetCard.dataset.id === draggedId) return;
@@ -991,7 +1094,7 @@ gallery.addEventListener('drop', (e) => {
   if (fromIdx !== -1 && toIdx !== -1) {
     const [movedItem] = items.splice(fromIdx, 1);
     items.splice(toIdx, 0, movedItem);
-    save(items);
+    await save(items);
     renderAll(searchInput.value);
   }
 });
@@ -1012,7 +1115,7 @@ document.getElementById('gallery').addEventListener('wheel', (e) => {
   }
 });
 
-renderAll();
+fetchCloudData();
 </script>
 </body>
 </html>
