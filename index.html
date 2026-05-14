@@ -404,11 +404,12 @@
     font-size: 24px;
     color: var(--border);
     margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-transform: uppercase;
+    max-width: 400px;
+    white-space: normal;
     line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
   }
 
   .poster-meta {
@@ -579,6 +580,61 @@
     text-transform: uppercase;
   }
 
+  /* User Chip & Dropdown */
+  .user-chip {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    position: relative;
+    padding: 4px;
+    transition: transform 0.2s;
+  }
+  .user-chip:hover { transform: translateY(-2px); }
+  
+  .user-photo {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    box-shadow: 2px 2px 0 var(--amber);
+    object-fit: cover;
+  }
+  
+  .user-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--border);
+    text-transform: uppercase;
+  }
+  
+  .user-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: var(--border);
+    border: 3px solid var(--border);
+    box-shadow: 4px 4px 0 var(--amber);
+    z-index: 1000;
+    display: none;
+    min-width: 120px;
+  }
+  .user-dropdown.show { display: block; }
+  
+  .dropdown-item {
+    padding: 10px 16px;
+    color: var(--bg2);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+  .dropdown-item:hover { background: var(--amber); color: var(--border); }
+
   .install-banner { display: none; }
 
   @media (max-width: 768px) {
@@ -621,6 +677,8 @@
     }
     
     .header-left div[style*="font-family"] { display: none; } /* Hide subtitle */
+    h1.anime-title { font-size: clamp(28px, 8vw, 38px); }
+    .user-name { display: none; }
     
     .shelf-wrapper { 
       margin: 0; 
@@ -774,12 +832,20 @@
     </div>
     
     <div class="header-right">
+      <div id="userChip" class="user-chip">
+        <img id="userPhoto" class="user-photo" src="" alt="">
+        <span id="userName" class="user-name"></span>
+        <div id="userDropdown" class="user-dropdown">
+          <div id="signOutBtn" class="dropdown-item">Sign Out</div>
+        </div>
+      </div>
       <div style="position: relative; display: flex; align-items: center;">
         <input type="text" id="searchInput" class="compact-search" placeholder="search collection..." autocomplete="off">
         <button id="clearSearchBtn" style="position: absolute; right: 8px; background: none; border: none; font-size: 16px; cursor: pointer; display: none; font-weight: bold; color: var(--border);">✕</button>
       </div>
       <button id="themeToggle" title="Toggle Theme" style="background: var(--border); border: 2px solid var(--border); color: var(--bg2); cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; box-shadow: 3px 3px 0 var(--amber); font-size: 16px; font-weight: bold;">◑</button>
       <div class="count-badge" id="countBadge">0 tracks</div>
+      <button id="authBtn" class="icon-btn" style="width: auto; padding: 0 16px; font-weight: bold; text-transform: uppercase; font-size: 11px;">Login</button>
     </div>
   </header>
 
@@ -792,8 +858,6 @@
 
   <footer class="app-footer">
     <div style="display: flex; gap: 12px; align-items: stretch;">
-      <button id="authBtn" class="icon-btn" style="width: auto; padding: 0 16px; font-weight: bold; text-transform: uppercase;">Login</button>
-      <div class="footer-text" id="userInfo">sign in to create your diary</div>
     </div>
     <div class="footer-action">
       <div class="compact-input">
@@ -901,33 +965,49 @@ function fmtDate(ts) {
   let activeCategory = 'music';
 
 
-  document.getElementById('authBtn').addEventListener('click', async () => {
-    if (currentUser) {
-      if (confirm('Logout?')) {
-        await signOut(auth);
-      }
-    } else {
-      try {
-        const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
-      } catch (e) {
-        showError('Login failed: ' + e.message);
-      }
+  const userChip = document.getElementById('userChip');
+  const userPhoto = document.getElementById('userPhoto');
+  const userName = document.getElementById('userName');
+  const userDropdown = document.getElementById('userDropdown');
+  const authBtn = document.getElementById('authBtn');
+
+  userChip.addEventListener('click', () => {
+    userDropdown.classList.toggle('show');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!userChip.contains(e.target)) {
+      userDropdown.classList.remove('show');
+    }
+  });
+
+  document.getElementById('signOutBtn').addEventListener('click', async () => {
+    if (confirm('Sign out of Zersap?')) {
+      await signOut(auth);
+    }
+  });
+
+  authBtn.addEventListener('click', async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (e) {
+      showError('Login failed: ' + e.message);
     }
   });
 
   onAuthStateChanged(auth, async (user) => {
     currentUser = user;
-    const authBtn = document.getElementById('authBtn');
-    const userInfo = document.getElementById('userInfo');
     
     if (user) {
-      authBtn.textContent = 'Logout';
-      userInfo.textContent = `logged in as ${user.email}`;
+      authBtn.style.display = 'none';
+      userChip.style.display = 'flex';
+      userPhoto.src = user.photoURL || '';
+      userName.textContent = (user.displayName || 'USER').split(' ')[0];
       await fetchCloudData();
     } else {
-      authBtn.textContent = 'Login';
-      userInfo.textContent = 'sign in to create your diary';
+      authBtn.style.display = 'flex';
+      userChip.style.display = 'none';
       appData = { music: [], movies: [], anime: [] };
       renderAll();
     }
@@ -993,9 +1073,9 @@ function fmtDate(ts) {
     }
     
     const authBtn = document.getElementById('authBtn');
-    if (authBtn) {
-      authBtn.style.background = isAdmin ? 'var(--amber)' : '';
-      authBtn.style.color = isAdmin ? 'var(--bg2)' : '';
+    if (authBtn && !currentUser) {
+      authBtn.style.background = '';
+      authBtn.style.color = '';
     }
     
     if (!isAdmin) {
