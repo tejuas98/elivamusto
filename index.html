@@ -675,7 +675,10 @@
     .compact-search { width: 100%; }
     
     .header-left .subtitle { display: none; } /* Hide subtitle */
-    h1.anime-title { font-size: clamp(28px, 8vw, 38px); }
+    h1.anime-title { 
+      font-size: clamp(24px, 7vw, 32px); 
+      white-space: nowrap;
+    }
     .user-name { display: block; font-size: 10px; }
     
     .shelf-wrapper { 
@@ -731,6 +734,7 @@
     
     .poster-title { 
       font-size: 18px; 
+      color: var(--bg2); /* Make title visible on dark mobile cards */
       white-space: normal; 
       display: -webkit-box;
       -webkit-line-clamp: 2;
