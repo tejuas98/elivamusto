@@ -614,27 +614,101 @@
     position: absolute;
     top: calc(100% + 10px);
     right: 0;
-    background: var(--border);
+    background: var(--bg2);
     border: 3px solid var(--border);
     box-shadow: 4px 4px 0 var(--amber);
     z-index: 1000;
     display: none;
-    min-width: 120px;
+    min-width: 150px;
   }
   .user-dropdown.show { display: block; }
-  
+
   .dropdown-item {
-    padding: 10px 16px;
-    color: var(--bg2);
+    padding: 12px 16px;
+    color: var(--border);
     font-family: 'DM Mono', monospace;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: bold;
     text-transform: uppercase;
     cursor: pointer;
     transition: background 0.2s;
-    white-space: nowrap;
+    border-bottom: 2px solid var(--border);
   }
-  .dropdown-item:hover { background: var(--amber); color: var(--border); }
+  .dropdown-item:last-child { border-bottom: none; }
+  .dropdown-item:hover { background: var(--amber); }
+
+  /* Settings Modal */
+  .settings-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    background: var(--bg2);
+    border: 4px solid var(--border);
+    box-shadow: 10px 10px 0 var(--border);
+    z-index: 2000;
+    padding: 30px;
+    display: none;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    min-width: 300px;
+  }
+  .settings-modal.show {
+    display: block;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  .settings-header {
+    font-family: 'Dela Gothic One', cursive;
+    font-size: 24px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .settings-item {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'DM Mono', monospace;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .checkbox-custom {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--border);
+    background: var(--bg2);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .checkbox-custom.checked::after {
+    content: '✕';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--amber);
+    font-size: 16px;
+  }
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1999;
+    display: none;
+    backdrop-filter: blur(2px);
+  }
+
+  /* Vertical Title Visibility Control */
+  .hide-vertical-titles .vertical-title {
+    opacity: 0;
+  }
+  .hide-vertical-titles .poster-slice:hover .vertical-title {
+    opacity: 1;
+  }
 
   .install-banner { display: none; }
 
@@ -867,10 +941,27 @@
         <button id="clearSearchBtn" style="position: absolute; right: 8px; background: none; border: none; font-size: 16px; cursor: pointer; display: none; font-weight: bold; color: var(--border);">✕</button>
       </div>
       <button id="themeToggle" title="Toggle Theme" style="background: var(--border); border: 2px solid var(--border); color: var(--bg2); cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; box-shadow: 3px 3px 0 var(--amber); font-size: 16px; font-weight: bold;">◑</button>
+      <button id="settingsBtn" title="Settings" style="background: var(--bg2); border: 2px solid var(--border); color: var(--border); cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; box-shadow: 3px 3px 0 var(--border); font-size: 18px;">⚙</button>
       <div class="count-badge" id="countBadge">0 tracks</div>
       <button id="authBtn" class="icon-btn" style="width: auto; padding: 0 16px; font-weight: bold; text-transform: uppercase; font-size: 11px;">Login</button>
     </div>
   </header>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="modalOverlay"></div>
+  <div class="settings-modal" id="settingsModal">
+    <div class="settings-header">
+      <span>SETTINGS</span>
+      <button id="closeSettings" style="background:none; border:none; cursor:pointer; font-size:24px; font-weight:bold; color:var(--border);">✕</button>
+    </div>
+    <div class="settings-item" id="toggleVerticalTitles">
+      <div class="checkbox-custom" id="verticalTitleCheckbox"></div>
+      <span>SHOW VERTICAL TITLES ON SHELF</span>
+    </div>
+    <p style="font-family:'DM Mono', monospace; font-size:10px; color:var(--text-muted); margin-top:20px; text-transform:uppercase;">
+      preferences are saved locally to your browser.
+    </p>
+  </div>
 
   <div class="loading-bar" id="loadingBar"></div>
   <div class="error-msg" id="errorMsg"></div>
@@ -1437,6 +1528,49 @@ if (isMobile && !isStandalone && !bannerDismissed) {
     }
   }
 }
+
+// Settings Logic
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsModal = document.getElementById('settingsModal');
+const modalOverlay = document.getElementById('modalOverlay');
+const closeSettings = document.getElementById('closeSettings');
+const toggleVerticalTitles = document.getElementById('toggleVerticalTitles');
+const verticalTitleCheckbox = document.getElementById('verticalTitleCheckbox');
+
+// Load initial setting
+let showVerticalTitles = localStorage.getItem('zersap_show_vertical_titles') !== 'false';
+if (!showVerticalTitles) {
+  document.body.classList.add('hide-vertical-titles');
+  verticalTitleCheckbox.classList.remove('checked');
+} else {
+  verticalTitleCheckbox.classList.add('checked');
+}
+
+settingsBtn.addEventListener('click', () => {
+  settingsModal.classList.add('show');
+  modalOverlay.style.display = 'block';
+});
+
+const hideModal = () => {
+  settingsModal.classList.remove('show');
+  modalOverlay.style.display = 'none';
+};
+
+closeSettings.addEventListener('click', hideModal);
+modalOverlay.addEventListener('click', hideModal);
+
+toggleVerticalTitles.addEventListener('click', () => {
+  showVerticalTitles = !showVerticalTitles;
+  localStorage.setItem('zersap_show_vertical_titles', showVerticalTitles.toString());
+  
+  if (showVerticalTitles) {
+    document.body.classList.remove('hide-vertical-titles');
+    verticalTitleCheckbox.classList.add('checked');
+  } else {
+    document.body.classList.add('hide-vertical-titles');
+    verticalTitleCheckbox.classList.remove('checked');
+  }
+});
 
 // Service Worker Registration
 if ('serviceWorker' in navigator) {
