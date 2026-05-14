@@ -303,20 +303,36 @@
     animation: fadeIn 0.4s ease both;
   }
 
-  /* The "white dim" glare layer */
+  /* Glare Layer Styles */
   .poster-slice::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; width: 30px; height: 100%;
-    background: linear-gradient(90deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+    top: 0; left: 0; width: 45px; height: 100%;
+    background: linear-gradient(90deg, rgba(255,255,255,0.25) 0%, transparent 100%);
     z-index: 5;
     pointer-events: none;
-    transition: opacity 0.3s;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
   }
 
+  html.glare-none .poster-slice::before { display: none !important; }
+  html.glare-none .poster-img { opacity: 1 !important; }
+
+  html.glare-subtle .poster-slice::before { 
+    width: 25px; 
+    background: linear-gradient(90deg, rgba(255,255,255,0.1) 0%, transparent 100%); 
+    backdrop-filter: none; 
+  }
+  html.glare-subtle .poster-img { opacity: 0.9 !important; }
+
+  html.glare-thick .poster-slice::before { 
+    width: 50px; 
+    background: linear-gradient(90deg, rgba(255,255,255,0.2) 0%, transparent 100%); 
+    backdrop-filter: blur(12px); 
+  }
+  html.glare-thick .poster-img { opacity: 0.8 !important; }
+
   html.hide-vertical-titles .vertical-title { display: none !important; }
-  html.hide-book-overlay .poster-slice::before { display: none !important; }
-  html.hide-book-overlay .poster-img { opacity: 1 !important; }
 
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
@@ -738,10 +754,35 @@
   .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.6);
     z-index: 1999;
     display: none;
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s;
+  }
+
+  .settings-select {
+    width: 100%;
+    padding: 10px;
+    background: var(--bg2);
+    border: 3px solid var(--border);
+    color: var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 var(--border);
+    outline: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    margin-top: 5px;
+  }
+  .settings-select:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--border);
   }
 
   /* Color Presets */
@@ -1023,11 +1064,13 @@
       </div>
     </div>
 
-    <div class="settings-item">
-      <div class="settings-row" id="toggleBookOverlay">
-        <div class="checkbox-custom checked" id="bookOverlayCheckbox"></div>
-        <span style="font-family:'DM Mono', monospace; font-size:12px; font-weight:bold;">SHOW BOOK GLARE/OVERLAY</span>
-      </div>
+    <div class="settings-item" style="width: 100%;">
+      <span style="font-family:'DM Mono', monospace; font-size:12px; font-weight:bold;">BOOK OVERLAY STYLE</span>
+      <select id="glareStyleSelect" class="settings-select">
+        <option value="none">NONE (CLEAR)</option>
+        <option value="subtle">SUBTLE (GLOSS)</option>
+        <option value="thick">THICK (CINEMATIC BLUR)</option>
+      </select>
     </div>
 
     <div class="settings-item" style="margin-top: 20px;">
@@ -1587,8 +1630,7 @@ const modalOverlay = document.getElementById('modalOverlay');
 const closeSettings = document.getElementById('closeSettings');
 const toggleVerticalTitles = document.getElementById('toggleVerticalTitles');
 const verticalTitleCheckbox = document.getElementById('verticalTitleCheckbox');
-const toggleBookOverlay = document.getElementById('toggleBookOverlay');
-const bookOverlayCheckbox = document.getElementById('bookOverlayCheckbox');
+const glareStyleSelect = document.getElementById('glareStyleSelect');
 
 // Initial State: Vertical Titles
 let showVerticalTitles = localStorage.getItem('zersap_show_vertical_titles') !== 'false';
@@ -1612,26 +1654,16 @@ toggleVerticalTitles.addEventListener('click', () => {
   }
 });
 
-// Initial State: Book Overlay
-let showBookOverlay = localStorage.getItem('zersap_show_book_overlay') !== 'false';
-if (!showBookOverlay) {
-  document.documentElement.classList.add('hide-book-overlay');
-  bookOverlayCheckbox.classList.remove('checked');
-} else {
-  document.documentElement.classList.remove('hide-book-overlay');
-  bookOverlayCheckbox.classList.add('checked');
-}
+// Initial State: Book Glare Style
+let glareStyle = localStorage.getItem('zersap_glare_style') || 'thick';
+glareStyleSelect.value = glareStyle;
+document.documentElement.classList.add('glare-' + glareStyle);
 
-toggleBookOverlay.addEventListener('click', () => {
-  showBookOverlay = !showBookOverlay;
-  localStorage.setItem('zersap_show_book_overlay', showBookOverlay.toString());
-  if (showBookOverlay) {
-    document.documentElement.classList.remove('hide-book-overlay');
-    bookOverlayCheckbox.classList.add('checked');
-  } else {
-    document.documentElement.classList.add('hide-book-overlay');
-    bookOverlayCheckbox.classList.remove('checked');
-  }
+glareStyleSelect.addEventListener('change', (e) => {
+  const newStyle = e.target.value;
+  document.documentElement.classList.remove('glare-none', 'glare-subtle', 'glare-thick');
+  document.documentElement.classList.add('glare-' + newStyle);
+  localStorage.setItem('zersap_glare_style', newStyle);
 });
 
 settingsBtn.addEventListener('click', () => {
