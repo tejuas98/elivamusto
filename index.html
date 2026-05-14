@@ -303,40 +303,19 @@
     animation: fadeIn 0.4s ease both;
   }
 
-  /* Glare Layer Styles (The Full Overlay) */
+  /* Simplified 100% Gloss Layer (No Blur) */
   .poster-slice::before {
     content: '';
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(255,255,255,0.05);
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.05) 100%);
     z-index: 5;
     pointer-events: none;
     transition: all 0.3s;
-    backdrop-filter: blur(3px);
   }
-
-  html.glare-none .poster-slice::before { display: none !important; }
-  html.glare-none .poster-img { opacity: 1 !important; }
-
-  html.glare-subtle .poster-slice::before { 
-    width: 100%; 
-    background: rgba(255,255,255,0.03); 
-    backdrop-filter: blur(1.5px); 
-  }
-  html.glare-subtle .poster-img { opacity: 0.98 !important; }
-
-  html.glare-thick .poster-slice::before { 
-    width: 100%; 
-    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.05) 100%); 
-    backdrop-filter: blur(4px); 
-  }
-  html.glare-thick .poster-img { opacity: 0.9 !important; }
-
-  /* Title Opacity Styles */
-  html.title-opacity-100 .vertical-title { opacity: 1 !important; }
-  html.title-opacity-50 .vertical-title { opacity: 0.5 !important; }
 
   html.hide-vertical-titles .vertical-title { display: none !important; }
+  html.hide-book-gloss .poster-slice::before { display: none !important; }
 
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
@@ -378,6 +357,7 @@
     font-size: 16px;
     color: var(--bg2);
     text-shadow: 2px 2px 0 var(--border), -1px -1px 0 var(--border), 1px -1px 0 var(--border), -1px 1px 0 var(--border), 1px 1px 0 var(--border);
+    opacity: 0.9;
     transition: opacity 0.3s;
     pointer-events: none;
     max-height: 80%;
@@ -1068,21 +1048,11 @@
       </div>
     </div>
 
-    <div class="settings-item" style="width: 100%;">
-      <span style="font-family:'DM Mono', monospace; font-size:12px; font-weight:bold;">BOOK OVERLAY STYLE</span>
-      <select id="glareStyleSelect" class="settings-select">
-        <option value="none">NONE (CLEAR)</option>
-        <option value="subtle">SUBTLE (GLOSS)</option>
-        <option value="thick">THICK (CINEMATIC BLUR)</option>
-      </select>
-    </div>
-
-    <div class="settings-item" style="width: 100%;">
-      <span style="font-family:'DM Mono', monospace; font-size:12px; font-weight:bold;">TITLE OPACITY</span>
-      <select id="titleOpacitySelect" class="settings-select">
-        <option value="100">100% (SHARP)</option>
-        <option value="50">50% (GHOST)</option>
-      </select>
+    <div class="settings-item">
+      <div class="settings-row" id="toggleBookGloss">
+        <div class="checkbox-custom checked" id="bookGlossCheckbox"></div>
+        <span style="font-family:'DM Mono', monospace; font-size:12px; font-weight:bold;">SHOW BOOK GLOSS</span>
+      </div>
     </div>
 
     <div class="settings-item" style="margin-top: 20px;">
@@ -1642,8 +1612,8 @@ const modalOverlay = document.getElementById('modalOverlay');
 const closeSettings = document.getElementById('closeSettings');
 const toggleVerticalTitles = document.getElementById('toggleVerticalTitles');
 const verticalTitleCheckbox = document.getElementById('verticalTitleCheckbox');
-const glareStyleSelect = document.getElementById('glareStyleSelect');
-const titleOpacitySelect = document.getElementById('titleOpacitySelect');
+const toggleBookGloss = document.getElementById('toggleBookGloss');
+const bookGlossCheckbox = document.getElementById('bookGlossCheckbox');
 
 // Initial State: Vertical Titles
 let showVerticalTitles = localStorage.getItem('zersap_show_vertical_titles') !== 'false';
@@ -1667,28 +1637,26 @@ toggleVerticalTitles.addEventListener('click', () => {
   }
 });
 
-// Initial State: Book Glare Style
-let glareStyle = localStorage.getItem('zersap_glare_style') || 'thick';
-glareStyleSelect.value = glareStyle;
-document.documentElement.classList.add('glare-' + glareStyle);
+// Initial State: Book Gloss
+let showBookGloss = localStorage.getItem('zersap_show_book_gloss') !== 'false';
+if (!showBookGloss) {
+  document.documentElement.classList.add('hide-book-gloss');
+  bookGlossCheckbox.classList.remove('checked');
+} else {
+  document.documentElement.classList.remove('hide-book-gloss');
+  bookGlossCheckbox.classList.add('checked');
+}
 
-glareStyleSelect.addEventListener('change', (e) => {
-  const newStyle = e.target.value;
-  document.documentElement.classList.remove('glare-none', 'glare-subtle', 'glare-thick');
-  document.documentElement.classList.add('glare-' + newStyle);
-  localStorage.setItem('zersap_glare_style', newStyle);
-});
-
-// Initial State: Title Opacity
-let titleOpacity = localStorage.getItem('zersap_title_opacity') || '100';
-titleOpacitySelect.value = titleOpacity;
-document.documentElement.classList.add('title-opacity-' + titleOpacity);
-
-titleOpacitySelect.addEventListener('change', (e) => {
-  const newOpacity = e.target.value;
-  document.documentElement.classList.remove('title-opacity-100', 'title-opacity-50');
-  document.documentElement.classList.add('title-opacity-' + newOpacity);
-  localStorage.setItem('zersap_title_opacity', newOpacity);
+toggleBookGloss.addEventListener('click', () => {
+  showBookGloss = !showBookGloss;
+  localStorage.setItem('zersap_show_book_gloss', showBookGloss.toString());
+  if (showBookGloss) {
+    document.documentElement.classList.remove('hide-book-gloss');
+    bookGlossCheckbox.classList.add('checked');
+  } else {
+    document.documentElement.classList.add('hide-book-gloss');
+    bookGlossCheckbox.classList.remove('checked');
+  }
 });
 
 settingsBtn.addEventListener('click', () => {
