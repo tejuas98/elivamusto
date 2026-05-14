@@ -870,23 +870,35 @@
       box-shadow: 2px 2px 0 var(--border);
     }
 
-    .checkbox-custom {
-      width: 24px;
+    .toggle-switch {
+      width: 48px;
       height: 24px;
       border: 3px solid var(--border);
-      background: var(--bg2);
+      background: #e5e5e5;
       position: relative;
+      cursor: pointer;
+      transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       flex-shrink: 0;
+      box-shadow: 2px 2px 0 var(--border);
     }
 
-    .checkbox-custom.checked::after {
-      content: '✕';
+    .toggle-switch.checked {
+      background: var(--amber);
+    }
+
+    .toggle-knob {
+      width: 16px;
+      height: 16px;
+      background: var(--bg2);
+      border: 2px solid var(--border);
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: var(--amber);
-      font-size: 16px;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .toggle-switch.checked .toggle-knob {
+      transform: translateX(24px);
     }
 
     .modal-overlay {
@@ -1287,7 +1299,9 @@
 
       <div class="settings-item">
         <div class="settings-row" id="toggleVerticalTitles">
-          <div class="checkbox-custom checked" id="verticalTitleCheckbox"></div>
+          <div class="toggle-switch checked" id="verticalTitleToggle">
+            <div class="toggle-knob"></div>
+          </div>
           <span style="font-family:'DM Mono', monospace; font-size:12px; font-weight:bold;">SHOW VERTICAL TITLES ON
             SHELF</span>
         </div>
@@ -1856,18 +1870,16 @@
     const modalOverlay = document.getElementById('modalOverlay');
     const closeSettings = document.getElementById('closeSettings');
     const toggleVerticalTitles = document.getElementById('toggleVerticalTitles');
-    const verticalTitleCheckbox = document.getElementById('verticalTitleCheckbox');
-    const toggleBookGloss = document.getElementById('toggleBookGloss');
-    const bookGlossCheckbox = document.getElementById('bookGlossCheckbox');
+    const verticalTitleToggle = document.getElementById('verticalTitleToggle');
 
     // Initial State: Vertical Titles
     let showVerticalTitles = localStorage.getItem('zersap_show_vertical_titles') !== 'false';
     if (!showVerticalTitles) {
       document.documentElement.classList.add('hide-vertical-titles');
-      verticalTitleCheckbox.classList.remove('checked');
+      verticalTitleToggle.classList.remove('checked');
     } else {
       document.documentElement.classList.remove('hide-vertical-titles');
-      verticalTitleCheckbox.classList.add('checked');
+      verticalTitleToggle.classList.add('checked');
     }
 
     toggleVerticalTitles.addEventListener('click', () => {
@@ -1875,10 +1887,10 @@
       localStorage.setItem('zersap_show_vertical_titles', showVerticalTitles.toString());
       if (showVerticalTitles) {
         document.documentElement.classList.remove('hide-vertical-titles');
-        verticalTitleCheckbox.classList.add('checked');
+        verticalTitleToggle.classList.add('checked');
       } else {
         document.documentElement.classList.add('hide-vertical-titles');
-        verticalTitleCheckbox.classList.remove('checked');
+        verticalTitleToggle.classList.remove('checked');
       }
     });
 
