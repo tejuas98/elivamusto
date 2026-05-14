@@ -1,43 +1,64 @@
-# Turiqs
+# Zersap - The Multi-User Media Diary
 
-Turiqs is a sleek, single-page "media diary" built directly into the browser. It allows users to track the music they listen to, the movies they watch, and the anime they follow, all inside a visually striking, retro manga/pop-art accordion gallery.
+Zersap is a deeply personal, brutalist-style digital diary for your media consumption. Stop losing track of that incredible song you found on YouTube at 3 AM. With Zersap, you simply paste a YouTube link, and it automatically extracts the video data, saves the thumbnail, and pins it to your private, infinite-scrolling shelf.
 
-## 🎨 Aesthetic & Design
-The core philosophy of Turiqs is a high-contrast, "Pop-Art" / Retro Manga aesthetic.
-- **Color Palette:** A paper-white/cream background with heavy, absolute black (#000) borders and offset box-shadows.
-- **Typography:** Uses *Dela Gothic One* for aggressive, chunky headers and *DM Mono/Syne* for clean data presentation.
-- **Layout:** The gallery operates entirely on pure CSS `flexbox`. The items sit as narrow vertical slices (spines) and dynamically expand horizontally into full 16:9 posters using fluid CSS `hover` transitions (`flex-grow`).
-- **Visual Contrast:** The user interface remains strictly monochrome, but the media posters inject highly saturated, vibrant colors (`filter: contrast(110%) saturate(120%)`) into the center of the screen, mimicking the color pages of a manga volume.
+Built with a "manga-pop" neo-brutalist aesthetic, Zersap is completely serverless. It uses Google Firebase to give every user their own secure, isolated media shelf. 
 
-## ⚙️ Tech Stack
-Turiqs is intentionally built to be zero-dependency, serverless, and brutally lightweight.
-- **Frontend:** Pure HTML5, Vanilla JavaScript (ES6), and Vanilla CSS3.
-- **Persistence:** Local browser storage (`localStorage`). No external databases or backend logic required. Data stays on the user's machine.
-- **APIs:** Client-side integration with three public, zero-authentication APIs.
+---
 
-## 🔄 Workflow & Architecture
+## ✨ Features
 
-The application is split into three core categories: `MUSIC`, `MOVIES`, and `ANIME`. The logic switches dynamically depending on which tab the user has selected.
+- **Google Authentication:** Passwordless sign-in. Your data is locked to your Google account.
+- **Isolated User Shelves:** You and your friends can use the same website, but you will never see each other's data. Everyone gets their own blank canvas.
+- **Smart Title Extraction:** Paste a YouTube URL and Zersap automatically fetches the high-res thumbnail, cleans up the messy YouTube title (removing tags like `[4K]` or `| Official Video`), and categorizes it.
+- **Infinite Drag & Drop:** Rearrange your media shelf by literally dragging and dropping the posters. 
+- **Neo-Brutalist Aesthetic:** High-contrast borders, raw typography, and smooth micro-animations. 
 
-### 1. Music (YouTube oEmbed API)
-- **Input:** The user pastes a direct YouTube URL.
-- **Flow:** The app extracts the video ID and calls the `noembed` or `youtube.com/oembed` public endpoint. 
-- **Data Captured:** Video Title, Channel Name, and official thumbnail.
-- **Playback Link:** The user can click the "Play" button on the card to open the YouTube video in a new tab.
+---
 
-### 2. Movies (Apple iTunes Search API)
-- **Input:** The user types a raw text query (e.g., "Interstellar").
-- **Flow:** The app hits the `https://itunes.apple.com/search?entity=movie` endpoint.
-- **Data Captured:** It grabs the highest matching result, parses the director name, and dynamically upscales the `artworkUrl100` string to fetch the ultra-high-resolution 1000x1000 official movie poster.
+## 🛠 Workflow (How it Works)
 
-### 3. Anime (Jikan / MyAnimeList API)
-- **Input:** The user types a raw text query (e.g., "Naruto").
-- **Flow:** The app queries `https://api.jikan.moe/v4/anime`.
-- **Data Captured:** It extracts the official English title, the animation studio, and the highest resolution JPG promotional artwork.
+### The Human Workflow (Non-Technical)
+1. **Visit the Site:** You open Zersap. It prompts you to sign in.
+2. **Login:** You click the "LOGIN" button and authenticate with your Google account.
+3. **Your Diary Opens:** Zersap instantly retrieves your personal list of saved songs and renders them as beautiful vertical posters.
+4. **Add a Memory:** You paste a YouTube link into the input box and press `+`.
+5. **Instant Save:** The song pops onto your shelf. Behind the scenes, it's permanently saved to the cloud. You can safely close the tab without worrying about losing data.
 
-### Data Storage & Rendering
-When an item is successfully fetched, it is stored as a JSON object inside `localStorage` under a category-specific key (`music_diary_v1`, `movies_diary_v1`, `anime_diary_v1`). 
-The `renderAll()` function loops through the selected category's array, dynamically injects the DOM elements for the gallery slices, handles broken image fallbacks (`onerror`), and manages the search/filter state in real-time.
+### The Tech Stack Workflow
+Zersap is built purely with **Vanilla JavaScript + HTML/CSS** for maximum performance, and uses **Google Firebase** for the backend infrastructure. 
 
-## 🚀 Running Locally
-Because Turiqs relies entirely on client-side JS and public APIs with no build steps, you simply need to open `ok.html` in any modern web browser to run the application.
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend as Zersap UI
+    participant Auth as Firebase Auth
+    participant DB as Firestore (Database)
+    participant YT as YouTube Image Servers
+
+    User->>Frontend: Clicks "Login"
+    Frontend->>Auth: Opens Google Sign-In Popup
+    Auth-->>Frontend: Returns Secure User ID (UID)
+    Frontend->>DB: Fetches Document: `users/{UID}`
+    DB-->>Frontend: Returns user's saved media array
+    Frontend->>Frontend: Renders Media Shelf UI
+
+    User->>Frontend: Pastes YouTube URL & clicks "+"
+    Frontend->>Frontend: Extracts Video ID via Regex
+    Frontend->>YT: Constructs High-Res Thumbnail URL from ID
+    Frontend->>Frontend: Appends new song to local memory array
+    Frontend->>DB: setDoc(`users/{UID}`, updated_array)
+    DB-->>Frontend: Success (Data permanently persisted)
+    Frontend->>Frontend: Re-renders UI to display new poster
+```
+
+---
+
+## 🚀 Future Roadmap: Anime & Movies
+
+Zersap is currently fully optimized for **Music**, but the foundation is laid out for **Movies** and **Anime** integration.
+
+**Upcoming Implementations:**
+1. **Dynamic Tab Switching:** Clicking the currently greyed-out "MOVIES" or "ANIME" tabs in the header will switch the active shelf, loading a completely different array from your Firebase database document.
+2. **TMDB / Jikan API Integration:** While the Music tab relies on YouTube URLs, the upcoming tabs will integrate directly with external APIs (like The Movie Database and Jikan for MyAnimeList). You'll be able to type in a movie name, and Zersap will auto-fetch the official poster and synopsis.
+3. **Watch Status:** Adding a visual indicator (like a small stamp or sticker on the poster) to denote "Watched" vs "Plan to Watch" for Movies and Anime.
