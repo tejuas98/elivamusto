@@ -318,6 +318,7 @@
       padding-bottom: 0px;
       margin: 0 -24px;
       padding: 0 24px;
+      scroll-behavior: smooth;
       flex: 1;
       min-height: 0;
       display: flex;
@@ -1844,7 +1845,7 @@
         e.preventDefault();
         document.querySelector('.shelf-wrapper').scrollBy({
           left: e.deltaY * 2,
-          behavior: 'auto'
+          behavior: 'smooth'
         });
       }
     });
