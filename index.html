@@ -628,8 +628,8 @@
 
   <footer class="app-footer">
     <div style="display: flex; gap: 12px; align-items: stretch;">
-      <button id="adminLoginBtn" class="icon-btn" style="width: auto; padding: 0 16px;" title="Admin Login">🔑</button>
-      <div class="footer-text">made for your ears only &nbsp;·&nbsp; cloud sync active</div>
+      <button id="authBtn" class="icon-btn" style="width: auto; padding: 0 16px; font-weight: bold; text-transform: uppercase;">Login</button>
+      <div class="footer-text" id="userInfo">sign in to create your diary</div>
     </div>
     <div class="footer-action">
       <div class="compact-input">
@@ -647,8 +647,25 @@
   </footer>
 </div>
 
-<script>
-const STORAGE_KEY = 'music_diary_v1';
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDkGtTtnjs3K2ma3BJkjb4W6IEZzCyyUUA",
+    authDomain: "zersap.firebaseapp.com",
+    projectId: "zersap",
+    storageBucket: "zersap.firebasestorage.app",
+    messagingSenderId: "602431770708",
+    appId: "1:602431770708:web:ba0e91aa677722bb7b9dc1"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
 
 
 function thumb(id) {
@@ -703,42 +720,55 @@ function fmtDate(ts) {
   let activeCategory = 'music';
 
 
-  const GITHUB_TOKEN_KEY = 'zersap_gh_token';
-  let githubToken = localStorage.getItem(GITHUB_TOKEN_KEY) || '';
-  const REPO = 'tejuas98/elivamusto';
-  let fileSha = null;
-  let appData = { music: [], movies: [], anime: [] };
-
-  document.getElementById('adminLoginBtn').addEventListener('click', () => {
-    if (githubToken) {
-      if (confirm('Logout of Admin mode?')) {
-        localStorage.removeItem(GITHUB_TOKEN_KEY);
-        location.reload();
+  document.getElementById('authBtn').addEventListener('click', async () => {
+    if (currentUser) {
+      if (confirm('Logout?')) {
+        await signOut(auth);
       }
     } else {
-      const t = prompt('Enter GitHub Personal Access Token:');
-      if (t) {
-        localStorage.setItem(GITHUB_TOKEN_KEY, t);
-        location.reload();
+      try {
+        const provider = new GoogleAuthProvider();
+        await signInWithPopup(auth, provider);
+      } catch (e) {
+        showError('Login failed: ' + e.message);
       }
     }
   });
 
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    const authBtn = document.getElementById('authBtn');
+    const userInfo = document.getElementById('userInfo');
+    
+    if (user) {
+      authBtn.textContent = 'Logout';
+      userInfo.textContent = `logged in as ${user.email}`;
+      await fetchCloudData();
+    } else {
+      authBtn.textContent = 'Login';
+      userInfo.textContent = 'sign in to create your diary';
+      appData = { music: [], movies: [], anime: [] };
+      renderAll();
+    }
+  });
+
   async function fetchCloudData() {
+    if (!currentUser) return;
     try {
       document.getElementById('loadingBar').style.display = 'block';
-      const res = await fetch(`https://api.github.com/repos/${REPO}/contents/data.json?timestamp=${Date.now()}`, {
-        headers: githubToken ? { 'Authorization': `token ${githubToken}` } : {}
-      });
-      if (res.ok) {
-        const data = await res.json();
-        fileSha = data.sha;
-        const content = decodeURIComponent(escape(atob(data.content)));
-        appData = JSON.parse(content);
+      const docRef = doc(db, 'users', currentUser.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        appData = docSnap.data();
+        if (!appData.music) appData.music = [];
+        if (!appData.movies) appData.movies = [];
+        if (!appData.anime) appData.anime = [];
+      } else {
+        appData = { music: [], movies: [], anime: [] };
       }
     } catch(e) {
       console.error(e);
-      showError('Failed to fetch cloud data');
+      showError('Failed to fetch data');
     } finally {
       document.getElementById('loadingBar').style.display = 'none';
       renderAll();
@@ -746,39 +776,15 @@ function fmtDate(ts) {
   }
 
   async function saveCloudData() {
-    if (!githubToken) {
-      showError('Admin login required');
-      return false;
-    }
+    if (!currentUser) return false;
     try {
       document.getElementById('loadingBar').style.display = 'block';
-      const content = btoa(unescape(encodeURIComponent(JSON.stringify(appData, null, 2))));
-      const res = await fetch(`https://api.github.com/repos/${REPO}/contents/data.json`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `token ${githubToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          message: 'Update Zersap data',
-          content: content,
-          sha: fileSha
-        })
-      });
-      if (!res.ok) {
-        let errMsg = 'Failed to save to cloud';
-        try {
-          const errData = await res.json();
-          errMsg = `GitHub Error: ${errData.message}`;
-        } catch(e) {}
-        throw new Error(errMsg);
-      }
-      const data = await res.json();
-      fileSha = data.content.sha;
+      const docRef = doc(db, 'users', currentUser.uid);
+      await setDoc(docRef, appData);
       return true;
     } catch(e) {
       console.error(e);
-      showError(e.message);
+      showError('Failed to save: ' + e.message);
       return false;
     } finally {
       document.getElementById('loadingBar').style.display = 'none';
@@ -795,18 +801,21 @@ function fmtDate(ts) {
   }
 
   function applyAdminRules() {
-    const isAdmin = !!githubToken;
+    const isAdmin = !!currentUser;
     const input = document.getElementById('urlInput');
     const addBtn = document.getElementById('addBtn');
     
     if (activeCategory === 'music') {
       input.disabled = !isAdmin;
       addBtn.disabled = !isAdmin;
-      input.placeholder = isAdmin ? 'youtube link...' : 'view only (login to edit)';
+      input.placeholder = isAdmin ? 'youtube link...' : 'sign in to edit';
     }
     
-    document.getElementById('adminLoginBtn').style.background = isAdmin ? 'var(--amber)' : '';
-    document.getElementById('adminLoginBtn').style.color = isAdmin ? 'var(--bg2)' : '';
+    const authBtn = document.getElementById('authBtn');
+    if (authBtn) {
+      authBtn.style.background = isAdmin ? 'var(--amber)' : '';
+      authBtn.style.color = isAdmin ? 'var(--bg2)' : '';
+    }
     
     if (!isAdmin) {
       document.querySelectorAll('.pin-btn, .delete-btn').forEach(b => b.style.display = 'none');
@@ -1122,7 +1131,6 @@ document.getElementById('gallery').addEventListener('wheel', (e) => {
   }
 });
 
-fetchCloudData();
 </script>
 </body>
 </html>
