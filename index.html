@@ -303,8 +303,20 @@
     animation: fadeIn 0.4s ease both;
   }
 
+  /* The "white dim" glare layer */
+  .poster-slice::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 30px; height: 100%;
+    background: linear-gradient(90deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+    z-index: 5;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
   html.hide-vertical-titles .vertical-title { display: none !important; }
-  html.hide-info-box .info-left { display: none !important; }
+  html.hide-book-overlay .poster-slice::before { display: none !important; }
+  html.hide-book-overlay .poster-img { opacity: 1 !important; }
 
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
@@ -576,13 +588,13 @@
   .user-chip {
     display: none;
     align-items: center;
-    gap: 10px;
-    padding: 4px;
-    transition: transform 0.2s;
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    z-index: 100;
+    gap: 12px;
+    padding: 10px;
+    background: var(--bg2);
+    border: 3px solid var(--border);
+    box-shadow: 4px 4px 0 var(--amber);
+    margin-bottom: 20px;
+    width: 100%;
   }
   .user-chip:hover { transform: translateY(-2px); }
   
@@ -969,14 +981,6 @@
           margin-top: 4px;
         ">メディア日記 · media diary</div>
       </div>
-      
-      <div id="userChip" class="user-chip">
-        <img id="userPhoto" class="user-photo" src="" alt="">
-        <span id="userName" class="user-name"></span>
-        <div id="userDropdown" class="user-dropdown">
-          <div id="signOutBtn" class="dropdown-item">Sign Out</div>
-        </div>
-      </div>
     </div>
     
     <div class="header-center">
@@ -1007,6 +1011,11 @@
       <span>SETTINGS</span>
       <button id="closeSettings" style="background:none; border:none; cursor:pointer; font-size:24px; font-weight:bold; color:var(--border);">✕</button>
     </div>
+    <div id="userChip" class="user-chip">
+      <img id="userPhoto" class="user-photo" src="" alt="">
+      <span id="userName" class="user-name"></span>
+    </div>
+
     <div class="settings-item">
       <div class="settings-row" id="toggleVerticalTitles">
         <div class="checkbox-custom checked" id="verticalTitleCheckbox"></div>
@@ -1015,9 +1024,9 @@
     </div>
 
     <div class="settings-item">
-      <div class="settings-row" id="toggleInfoBox">
-        <div class="checkbox-custom checked" id="infoBoxCheckbox"></div>
-        <span style="font-family:'DM Mono', monospace; font-size:12px; font-weight:bold;">SHOW INFO BOX ON HOVER</span>
+      <div class="settings-row" id="toggleBookOverlay">
+        <div class="checkbox-custom checked" id="bookOverlayCheckbox"></div>
+        <span style="font-family:'DM Mono', monospace; font-size:12px; font-weight:bold;">SHOW BOOK GLARE/OVERLAY</span>
       </div>
     </div>
 
@@ -1585,8 +1594,8 @@ const modalOverlay = document.getElementById('modalOverlay');
 const closeSettings = document.getElementById('closeSettings');
 const toggleVerticalTitles = document.getElementById('toggleVerticalTitles');
 const verticalTitleCheckbox = document.getElementById('verticalTitleCheckbox');
-const toggleInfoBox = document.getElementById('toggleInfoBox');
-const infoBoxCheckbox = document.getElementById('infoBoxCheckbox');
+const toggleBookOverlay = document.getElementById('toggleBookOverlay');
+const bookOverlayCheckbox = document.getElementById('bookOverlayCheckbox');
 
 // Initial State: Vertical Titles
 let showVerticalTitles = localStorage.getItem('zersap_show_vertical_titles') !== 'false';
@@ -1610,25 +1619,25 @@ toggleVerticalTitles.addEventListener('click', () => {
   }
 });
 
-// Initial State: Info Box
-let showInfoBox = localStorage.getItem('zersap_show_info_box') !== 'false';
-if (!showInfoBox) {
-  document.documentElement.classList.add('hide-info-box');
-  infoBoxCheckbox.classList.remove('checked');
+// Initial State: Book Overlay
+let showBookOverlay = localStorage.getItem('zersap_show_book_overlay') !== 'false';
+if (!showBookOverlay) {
+  document.documentElement.classList.add('hide-book-overlay');
+  bookOverlayCheckbox.classList.remove('checked');
 } else {
-  document.documentElement.classList.remove('hide-info-box');
-  infoBoxCheckbox.classList.add('checked');
+  document.documentElement.classList.remove('hide-book-overlay');
+  bookOverlayCheckbox.classList.add('checked');
 }
 
-toggleInfoBox.addEventListener('click', () => {
-  showInfoBox = !showInfoBox;
-  localStorage.setItem('zersap_show_info_box', showInfoBox.toString());
-  if (showInfoBox) {
-    document.documentElement.classList.remove('hide-info-box');
-    infoBoxCheckbox.classList.add('checked');
+toggleBookOverlay.addEventListener('click', () => {
+  showBookOverlay = !showBookOverlay;
+  localStorage.setItem('zersap_show_book_overlay', showBookOverlay.toString());
+  if (showBookOverlay) {
+    document.documentElement.classList.remove('hide-book-overlay');
+    bookOverlayCheckbox.classList.add('checked');
   } else {
-    document.documentElement.classList.add('hide-info-box');
-    infoBoxCheckbox.classList.remove('checked');
+    document.documentElement.classList.add('hide-book-overlay');
+    bookOverlayCheckbox.classList.remove('checked');
   }
 });
 
