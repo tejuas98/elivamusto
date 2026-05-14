@@ -1016,6 +1016,11 @@
         <div class="color-dot" data-color="#7209b7" style="background: #7209b7;"></div>
         <div class="color-dot" data-color="#4ade80" style="background: #4ade80;"></div>
       </div>
+      
+      <div style="margin-top: 20px; display: flex; align-items: center; gap: 12px;">
+        <input type="color" id="themeColorPicker" style="cursor: pointer; width: 40px; height: 30px; border: 3px solid var(--border); background: none; padding: 0;">
+        <span style="font-family:'DM Mono', monospace; font-size:12px; font-weight:bold;">CUSTOM COLOR</span>
+      </div>
     </div>
 
     <button class="logout-btn" id="modalLogoutBtn" style="width: 100%; margin-top: 30px; padding: 12px; background: var(--red); color: white; border: 3px solid var(--border); box-shadow: 4px 4px 0 var(--border); font-family: 'Dela Gothic One', cursive; cursor: pointer;">SIGN OUT</button>
@@ -1601,28 +1606,42 @@ toggleVerticalTitles.addEventListener('click', () => {
   }
 });
 
-// Theme Color Logic (Presets)
+// Theme Color Logic (Presets & Picker)
 const colorDots = document.querySelectorAll('.color-dot');
+const themeColorPicker = document.getElementById('themeColorPicker');
 const savedColor = localStorage.getItem('zersap_theme_color') || '#ff6b35';
-document.documentElement.style.setProperty('--amber', savedColor);
 
-// Highlight saved color dot
+document.documentElement.style.setProperty('--amber', savedColor);
+themeColorPicker.value = savedColor;
+
+const updateThemeColor = (newColor) => {
+  document.documentElement.style.setProperty('--amber', newColor);
+  localStorage.setItem('zersap_theme_color', newColor);
+  themeColorPicker.value = newColor;
+  
+  // Update dots active state
+  colorDots.forEach(d => {
+    if (d.dataset.color.toLowerCase() === newColor.toLowerCase()) {
+      d.classList.add('active');
+    } else {
+      d.classList.remove('active');
+    }
+  });
+};
+
+// Initialize dots
 colorDots.forEach(dot => {
-  if (dot.dataset.color === savedColor) {
+  if (dot.dataset.color.toLowerCase() === savedColor.toLowerCase()) {
     dot.classList.add('active');
-  } else {
-    dot.classList.remove('active');
   }
   
   dot.addEventListener('click', () => {
-    const newColor = dot.dataset.color;
-    document.documentElement.style.setProperty('--amber', newColor);
-    localStorage.setItem('zersap_theme_color', newColor);
-    
-    // Update active state
-    colorDots.forEach(d => d.classList.remove('active'));
-    dot.classList.add('active');
+    updateThemeColor(dot.dataset.color);
   });
+});
+
+themeColorPicker.addEventListener('input', (e) => {
+  updateThemeColor(e.target.value);
 });
 
 // Modal Logout Logic
