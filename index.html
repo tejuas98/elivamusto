@@ -675,8 +675,29 @@ function thumb(id) {
 
 function cleanTitle(title) {
   let cleaned = title;
-  // Remove text in parentheses or brackets (e.g. (Official Video), [4K])
-  cleaned = cleaned.replace(/[\(\[].*?[\)\]]/g, '');
+  
+  // 1. Remove text in parentheses or brackets
+  cleaned = cleaned.replace(/[\(\[\{].*?[\)\]\}]/g, '');
+  
+  // 2. Split by '|' and take the first part (usually drops cast/crew)
+  if (cleaned.includes('|')) {
+    cleaned = cleaned.split('|')[0];
+  }
+  
+  // 3. Remove common YouTube music buzzwords
+  const buzzwords = [
+    /official video/i, /lyrical video/i, /lyrical song/i, /lyrical/i, 
+    /full video song/i, /full video/i, /full song/i, /video song/i, 
+    /music video/i, /official audio/i, /audio song/i,
+    /8k/i, /4k/i, /60fps/i, /hd/i, /1080p/i, /ft\..*/i, /feat\..*/i, /m\/v/i
+  ];
+  
+  buzzwords.forEach(regex => {
+    cleaned = cleaned.replace(regex, '');
+  });
+  
+  // 4. Clean up leftover trailing/leading dashes, colons, or spaces
+  cleaned = cleaned.replace(/^[-:|\s]+|[-:|\s]+$/g, '');
   
   return cleaned.trim() || title;
 }
