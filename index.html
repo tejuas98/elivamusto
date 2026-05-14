@@ -280,7 +280,7 @@
   .gallery {
     display: flex;
     gap: 12px;
-    padding: 10px 24px 100px;
+    padding: 10px 24px 40px;
     flex: 1;
     height: auto;
     overflow: visible;
@@ -302,6 +302,9 @@
     box-shadow: 6px 6px 0 var(--border);
     animation: fadeIn 0.4s ease both;
   }
+
+  body.hide-vertical-titles .vertical-title { display: none !important; }
+  body.hide-info-box .info-left { display: none !important; }
 
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
@@ -1006,8 +1009,15 @@
     </div>
     <div class="settings-item">
       <div class="settings-row" id="toggleVerticalTitles">
-        <div class="checkbox-custom" id="verticalTitleCheckbox"></div>
+        <div class="checkbox-custom checked" id="verticalTitleCheckbox"></div>
         <span style="font-family:'DM Mono', monospace; font-size:12px; font-weight:bold;">SHOW VERTICAL TITLES ON SHELF</span>
+      </div>
+    </div>
+
+    <div class="settings-item">
+      <div class="settings-row" id="toggleInfoBox">
+        <div class="checkbox-custom checked" id="infoBoxCheckbox"></div>
+        <span style="font-family:'DM Mono', monospace; font-size:12px; font-weight:bold;">SHOW INFO BOX ON HOVER</span>
       </div>
     </div>
 
@@ -1575,8 +1585,11 @@ const modalOverlay = document.getElementById('modalOverlay');
 const closeSettings = document.getElementById('closeSettings');
 const toggleVerticalTitles = document.getElementById('toggleVerticalTitles');
 const verticalTitleCheckbox = document.getElementById('verticalTitleCheckbox');
+const toggleInfoBox = document.getElementById('toggleInfoBox');
+const infoBoxCheckbox = document.getElementById('infoBoxCheckbox');
 
 // Load initial setting
+// Vertical Titles Toggle
 let showVerticalTitles = localStorage.getItem('zersap_show_vertical_titles') !== 'false';
 if (!showVerticalTitles) {
   document.body.classList.add('hide-vertical-titles');
@@ -1584,6 +1597,39 @@ if (!showVerticalTitles) {
 } else {
   verticalTitleCheckbox.classList.add('checked');
 }
+
+toggleVerticalTitles.addEventListener('click', () => {
+  showVerticalTitles = !showVerticalTitles;
+  localStorage.setItem('zersap_show_vertical_titles', showVerticalTitles.toString());
+  if (showVerticalTitles) {
+    document.body.classList.remove('hide-vertical-titles');
+    verticalTitleCheckbox.classList.add('checked');
+  } else {
+    document.body.classList.add('hide-vertical-titles');
+    verticalTitleCheckbox.classList.remove('checked');
+  }
+});
+
+// Info Box Toggle
+let showInfoBox = localStorage.getItem('zersap_show_info_box') !== 'false';
+if (!showInfoBox) {
+  document.body.classList.add('hide-info-box');
+  infoBoxCheckbox.classList.remove('checked');
+} else {
+  infoBoxCheckbox.classList.add('checked');
+}
+
+toggleInfoBox.addEventListener('click', () => {
+  showInfoBox = !showInfoBox;
+  localStorage.setItem('zersap_show_info_box', showInfoBox.toString());
+  if (showInfoBox) {
+    document.body.classList.remove('hide-info-box');
+    infoBoxCheckbox.classList.add('checked');
+  } else {
+    document.body.classList.add('hide-info-box');
+    infoBoxCheckbox.classList.remove('checked');
+  }
+});
 
 settingsBtn.addEventListener('click', () => {
   settingsModal.classList.add('show');
@@ -1597,19 +1643,6 @@ const hideModal = () => {
 
 closeSettings.addEventListener('click', hideModal);
 modalOverlay.addEventListener('click', hideModal);
-
-toggleVerticalTitles.addEventListener('click', () => {
-  showVerticalTitles = !showVerticalTitles;
-  localStorage.setItem('zersap_show_vertical_titles', showVerticalTitles.toString());
-  
-  if (showVerticalTitles) {
-    document.body.classList.remove('hide-vertical-titles');
-    verticalTitleCheckbox.classList.add('checked');
-  } else {
-    document.body.classList.add('hide-vertical-titles');
-    verticalTitleCheckbox.classList.remove('checked');
-  }
-});
 
 // Theme Color Logic (Presets & Picker)
 const colorDots = document.querySelectorAll('.color-dot');
