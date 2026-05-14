@@ -62,9 +62,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 40px 0 0;
+    padding: 10px 0 0;
     flex-shrink: 0;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
   }
 
   .header-left {
@@ -280,7 +280,7 @@
   .gallery {
     display: flex;
     gap: 12px;
-    padding: 10px 24px 40px;
+    padding: 10px 24px;
     flex: 1;
     height: auto;
     overflow: visible;
@@ -303,8 +303,8 @@
     animation: fadeIn 0.4s ease both;
   }
 
-  body.hide-vertical-titles .vertical-title { display: none !important; }
-  body.hide-info-box .info-left { display: none !important; }
+  html.hide-vertical-titles .vertical-title { display: none !important; }
+  html.hide-info-box .info-left { display: none !important; }
 
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
@@ -556,7 +556,7 @@
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    padding: 0 0 40px;
+    padding: 0 0 15px;
     flex-shrink: 0;
   }
   .footer-text {
@@ -1589,12 +1589,19 @@ const toggleInfoBox = document.getElementById('toggleInfoBox');
 const infoBoxCheckbox = document.getElementById('infoBoxCheckbox');
 
 // Load initial setting
-// Vertical Titles Toggle
+// --- Settings Toggles Logic ---
+const toggleVerticalTitles = document.getElementById('toggleVerticalTitles');
+const verticalTitleCheckbox = document.getElementById('verticalTitleCheckbox');
+const toggleInfoBox = document.getElementById('toggleInfoBox');
+const infoBoxCheckbox = document.getElementById('infoBoxCheckbox');
+
+// Initial State: Vertical Titles
 let showVerticalTitles = localStorage.getItem('zersap_show_vertical_titles') !== 'false';
 if (!showVerticalTitles) {
-  document.body.classList.add('hide-vertical-titles');
+  document.documentElement.classList.add('hide-vertical-titles');
   verticalTitleCheckbox.classList.remove('checked');
 } else {
+  document.documentElement.classList.remove('hide-vertical-titles');
   verticalTitleCheckbox.classList.add('checked');
 }
 
@@ -1602,20 +1609,21 @@ toggleVerticalTitles.addEventListener('click', () => {
   showVerticalTitles = !showVerticalTitles;
   localStorage.setItem('zersap_show_vertical_titles', showVerticalTitles.toString());
   if (showVerticalTitles) {
-    document.body.classList.remove('hide-vertical-titles');
+    document.documentElement.classList.remove('hide-vertical-titles');
     verticalTitleCheckbox.classList.add('checked');
   } else {
-    document.body.classList.add('hide-vertical-titles');
+    document.documentElement.classList.add('hide-vertical-titles');
     verticalTitleCheckbox.classList.remove('checked');
   }
 });
 
-// Info Box Toggle
+// Initial State: Info Box
 let showInfoBox = localStorage.getItem('zersap_show_info_box') !== 'false';
 if (!showInfoBox) {
-  document.body.classList.add('hide-info-box');
+  document.documentElement.classList.add('hide-info-box');
   infoBoxCheckbox.classList.remove('checked');
 } else {
+  document.documentElement.classList.remove('hide-info-box');
   infoBoxCheckbox.classList.add('checked');
 }
 
@@ -1623,10 +1631,10 @@ toggleInfoBox.addEventListener('click', () => {
   showInfoBox = !showInfoBox;
   localStorage.setItem('zersap_show_info_box', showInfoBox.toString());
   if (showInfoBox) {
-    document.body.classList.remove('hide-info-box');
+    document.documentElement.classList.remove('hide-info-box');
     infoBoxCheckbox.classList.add('checked');
   } else {
-    document.body.classList.add('hide-info-box');
+    document.documentElement.classList.add('hide-info-box');
     infoBoxCheckbox.classList.remove('checked');
   }
 });
@@ -1644,7 +1652,7 @@ const hideModal = () => {
 closeSettings.addEventListener('click', hideModal);
 modalOverlay.addEventListener('click', hideModal);
 
-// Theme Color Logic (Presets & Picker)
+// Theme Color Logic
 const colorDots = document.querySelectorAll('.color-dot');
 const themeColorPicker = document.getElementById('themeColorPicker');
 const savedColor = localStorage.getItem('zersap_theme_color') || '#ff6b35';
